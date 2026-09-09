@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../utility/volleyball.png" type="image/png">
+    <title>Team Profiles</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="base.css">
+    <link rel="stylesheet" href="teamProfiles_Newbie.css">
+    <link rel="stylesheet" href="popup.css">
+    <link rel="stylesheet" href="darkmode.css">
+</head>
+<body class="page table-page team-profile-page">
+    <script src = '../utility/dataStorage.js'></script>
+    <a href="../../index.html" class="back-link">
+        <i class="fas fa-arrow-left"></i>
+        Back to Main Page
+    </a>
+    <h1>Team Profiles</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Team ID</th>
+                <th class="clickable-header" onclick="openBatchInputAvailableDaysNewbie()">Available Days</th>
+                <th class="clickable-header" onclick="openBatchInputModal()">Team Name</th>
+                <th>Edit</th>
+            </tr>
+        </thead>
+        <tbody id="team-table-body"></tbody>
+    </table>
+
+    <div class="modal-overlay" id="modal-overlay"></div>
+    <div class="modal" id="match-modal">
+        <h2>Match History</h2>
+        <div id="match-content"></div>
+        <button onclick="closeModal()">Close</button>
+    </div>
+
+    <div class="modal-overlay" id="batch-input-overlay"></div>
+    <div class="modal" id="batch-input-modal">
+        <h2>Batch Input (TeamID [tab] TeamName)</h2>
+        <textarea id="batch-input-area" rows="8" cols="40"></textarea>
+        <br>
+        <button onclick="saveBatchInput()">Save</button>
+        <button onclick="closeBatchInputModal()">Cancel</button>
+    </div>
+
+    <!-- Newbie Batch Input Popup -->
+    <div class="popup-overlay" id="batch-popup-overlay-newbie"></div>
+    <div class="popup" id="batch-popup-newbie">
+        <div class="input-container">
+            <h3>Batch Input for Newbie Team Availability</h3>
+            <div class="instructions">
+                <p>Format: Team Name 不可比賽日1 不可比賽日2</p>
+                <p>Example:</p>
+                <pre>
+資工 五 四
+森林 二 四
+心理 二 四</pre>
+            </div>
+            <textarea 
+                id="batchInputNewbie" 
+                rows="10" 
+                placeholder="Paste your team availability data here..."
+                class="batch-textarea"
+            ></textarea>
+            <button id="processBatchInputNewbie" class="process-button">Process Teams</button>
+            <div id="processResultNewbie" class="process-result"></div>
+        </div>
+    </div>
+
+    <script src="../utility/teamProfiles.js"></script>
+    <script>
+        initializeTeamProfilePage("newbie");
+    </script>
+</body>
+</html>

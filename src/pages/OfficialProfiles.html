@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../utility/volleyball.png" type="image/png">
+    <title>Official Profiles</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="base.css">
+    <link rel="stylesheet" href="OfficialProfiles.css">
+    <link rel="stylesheet" href="darkmode.css">
+</head>
+<body class="page table-page official-profiles-page">
+    <script src="../utility/dataStorage.js"></script>
+    <div class="official-toolbar">
+        <a href="../../index.html" class="back-link">
+            <i class="fas fa-arrow-left"></i>
+            Back to Main Page
+        </a>
+        <div class="pay-card">
+            <div class="pay-left">
+                <i class="fas fa-money-bill-wave pay-icon" aria-hidden="true"></i>
+                <div class="pay-info">
+                    <label for="pay-per-match" class="pay-label">Pay per match</label>
+                    <input id="pay-per-match" type="number" step="1" aria-label="Pay per match" placeholder="0" class="pay-input">
+                </div>
+            </div>
+
+            <div class="pay-actions">
+                <button onclick="savePayPerMatch()" class="save-pay-btn">
+                    <i class="fas fa-save save-icon" aria-hidden="true"></i>
+                    Save
+                </button>
+            </div>
+        </div>
+    </div>
+    <h1>Official Profiles</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Official Name</th>
+                <th>Available Days</th>
+                <th>Matches Officiated</th>
+                <th>Adjust Payment</th>
+                <th>Current Payment</th>
+                <th>Matches</th>
+                <th>Edit</th>
+                <th>Delete</th>
+            </tr>
+        </thead>
+        <tbody id="officials-table-body"></tbody>
+    </table>
+
+    <div class="modal-overlay" id="modal-overlay"></div>
+    
+    <!-- Existing Match Modal -->
+    <div class="modal" id="match-modal">
+        <h2>Matches Officiated</h2>
+        <div id="match-content"></div>
+        <button onclick="closeModal()">Close</button>
+    </div>
+
+    <!-- NEW: Adjustment Modal -->
+    <div class="modal adjustment-modal" id="adjustment-modal">
+        <h2 id="adj-modal-title">Adjust Payment</h2>
+        <div class="adjustment-form">
+            <label>Enter Adjustment:</label>
+            <input type="number" id="adj-input-amount" placeholder="Amount (e.g. 100 or -50)">
+            <input type="text" id="adj-input-note" placeholder="Note (e.g. Bonus, Penalty)">
+            <button class="edit-btn" onclick="addNewAdjustment()">Add Adjustment</button>
+        </div>
+        
+        <h3>Past Adjustments</h3>
+        <div id="adj-history-content" class="adjustment-history">
+            <!-- History items will go here -->
+        </div>
+        
+        <div class="modal-actions">
+            <strong>Total Adjustment: <span id="adj-total-display">0</span></strong>
+        </div>
+        <br>
+        <button onclick="closeModal()">Close</button>
+    </div>
+
+    <div class="fixed-save-bar">
+        <button id="save-all-official" class="save-all-button">Save All Changes</button>
+        <button id="cashout-all" class="save-all-button cashout-button">Cashout All</button>
+    </div>
+    <script>
+        // Global variable to track which official is currently being edited in the modal
+        let currentEditingOfficial = null;
+
+        function updateViewport() {
+            const meta = document.querySelector('meta[name="viewport"]');
+            if (!meta) return;
+            const width = Math.max(window.innerWidth || 0, screen.width || 0);
+            if (width < 768) {
+                meta.setAttribute('content', 'width=device-width, initial-scale=0.5');
+            } else {
+                meta.setAttribute('content', 'width=device-width, initial-scale=1.0');
+            }
+        }
+        window.addEventListener('resize', updateViewport);
+        window.addEventListener('orientationchange', updateViewport);
+        updateViewport();
+    
+
+        // Populate the table by merging official stats and profiles.
+        function populateOfficialsTable() {
+            const stats = fetchOfficialStats(); 
+            const tableBody = document.getElementById("officials-table-body");
+            tableBody.innerHTML = "";
+        
+            Object.keys(stats).forEach(officialName => {
+                const officialData = stats[officialName];
+                
+                // Calculate Adjustment Data
+                const { total: totalAdjustment } = getAdjustmentData(officialData);
+
+                const availableDays = (Array.isArray(officialData.availableDays) && officialData.availableDays.length > 0)
+                    ? officialData.availableDays.join(', ')
+                    : "1,2,3,4,5";
+                const matchCount = officialData.count || 0;
+                
+                // Calculate Final Pay
+                const payPerMatch = parseInt(document.getElementById("pay-per-match").value) || 0;
+                const totalPay = (matchCount * payPerMatch) + totalAdjustment;
+
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${officialName}</td>
+                    <td contenteditable="true">${availableDays}</td>
+                    <td>${matchCount}</td>
+                    <td>
+                        <button class="edit-btn adjustment-button" onclick="openAdjustmentModal('${officialName}')">
+                            ${totalAdjustment > 0 ? '+' : ''}${totalAdjustment}
+                        </button>
+                    </td>
+                    <td>${totalPay}</td>
+                    <td><button class="match-btn" onclick="showMatchesForOfficial('${officialName}')">View Matches</button></td>
+                    <td><button class="edit-btn" onclick="saveOfficialChanges('${officialName}', this)">Save Days</button></td>
+                    <td><button class="delete-btn" onclick="deleteOfficial('${officialName}')">Delete</button></td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // --- NEW ADJUSTMENT LOGIC ---
+
+        function openAdjustmentModal(officialName) {
+            currentEditingOfficial = officialName;
+            document.getElementById("adj-modal-title").innerText = `Adjust Payment: ${officialName}`;
+            document.getElementById("adj-input-amount").value = "";
+            document.getElementById("adj-input-note").value = "";
+            
+            renderAdjustmentHistory();
+            
+            document.getElementById("modal-overlay").style.display = "block";
+            document.getElementById("adjustment-modal").style.display = "block";
+        }
+
+        function renderAdjustmentHistory() {
+            const stats = fetchOfficialStats();
+            const officialData = stats[currentEditingOfficial];
+            const { history, total } = getAdjustmentData(officialData);
+            
+            const container = document.getElementById("adj-history-content");
+            container.innerHTML = "";
+
+            if (history.length === 0) {
+                container.innerHTML = '<p class="empty-adjustments">No past adjustments.</p>';
+            } else {
+                const ul = document.createElement("ul");
+                ul.className = "adjustment-list";
+                
+                // Show newest first
+                [...history].reverse().forEach((item, index) => {
+                    // Calculate original index for deletion
+                    const originalIndex = history.length - 1 - index;
+                    
+                    const li = document.createElement("li");
+                    li.className = "adjustment-item";
+                    const amountClass = item.amount >= 0 ? "positive" : "negative";
+                    
+                    li.innerHTML = `
+                        <div>
+                            <span class="adjustment-amount ${amountClass}">
+                                ${item.amount > 0 ? '+' : ''}${item.amount}
+                            </span>
+                            <span class="adjustment-note">${item.note || '-'}</span>
+                            <div class="adjustment-date">${item.date || ''}</div>
+                        </div>
+                        <button class="delete-adjustment" onclick="deleteAdjustment(${originalIndex})">X</button>
+                    `;
+                    ul.appendChild(li);
+                });
+                container.appendChild(ul);
+            }
+
+            document.getElementById("adj-total-display").innerText = total;
+        }
+
+        function addNewAdjustment() {
+            const amountInput = document.getElementById("adj-input-amount");
+            const noteInput = document.getElementById("adj-input-note");
+            
+            const amount = parseInt(amountInput.value);
+            if (isNaN(amount)) {
+                alert("Please enter a valid number.");
+                return;
+            }
+
+            const stats = fetchOfficialStats();
+            const officialData = stats[currentEditingOfficial];
+            
+            // Ensure history array exists
+            if (!officialData.adjustmentHistory) {
+                // Check if we need to migrate legacy data first
+                if (officialData.adjustment) {
+                    officialData.adjustmentHistory = [{
+                        amount: parseInt(officialData.adjustment),
+                        note: "Legacy Adjustment",
+                        date: new Date().toLocaleDateString()
+                    }];
+                } else {
+                    officialData.adjustmentHistory = [];
+                }
+            }
+
+            // Add new item
+            officialData.adjustmentHistory.push({
+                amount: amount,
+                note: noteInput.value.trim(),
+                date: new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString()
+            });
+
+            // Update the legacy 'adjustment' field to match the new total (for backward compatibility)
+            const total = officialData.adjustmentHistory.reduce((sum, item) => sum + item.amount, 0);
+            officialData.adjustment = total;
+
+            saveOfficialStats(stats);
+            
+            // Clear inputs and refresh view
+            amountInput.value = "";
+            noteInput.value = "";
+            renderAdjustmentHistory();
+            populateOfficialsTable(); // Refresh background table
+        }
+
+        function deleteAdjustment(index) {
+            if(!confirm("Remove this adjustment?")) return;
+
+            const stats = fetchOfficialStats();
+            const officialData = stats[currentEditingOfficial];
+            
+            if (officialData.adjustmentHistory) {
+                officialData.adjustmentHistory.splice(index, 1);
+                
+                // Update legacy field
+                const total = officialData.adjustmentHistory.reduce((sum, item) => sum + item.amount, 0);
+                officialData.adjustment = total;
+                
+                saveOfficialStats(stats);
+                renderAdjustmentHistory();
+                populateOfficialsTable();
+            }
+        }
+
+        // --- END NEW ADJUSTMENT LOGIC ---
+
+        // Delete an official from stats
+        function deleteOfficial(official) {
+            if (confirm(`Are you sure you want to delete ${official}? This action cannot be undone.`)) {
+                const stats = fetchOfficialStats();
+                if (stats[official]) {
+                    delete stats[official];
+                    saveOfficialStats(stats);
+                    populateOfficialsTable();
+                    alert(`${official} has been deleted.`);
+                } 
+                matches = fetchMatches();
+                matches.map(m => m.official === official ? m.official = "" : m.official = m.official);
+                saveMatches(matches);
+            }
+        }
+        // Save changes to availableDays
+        function saveOfficialChanges(official, button) {
+            const row = button.parentElement.parentElement;
+            const availableDaysText = row.cells[1].innerText.trim();
+            // Convert comma-separated string to an array, removing any extra spaces.
+            let availableDays = availableDaysText.split(',')
+                .map(s => parseInt(s.trim(), 10))
+                .filter(n => !isNaN(n));
+            // If not valid, default to [1,2,3,4,5]
+            if (availableDays.length === 0) {
+                availableDays = [1,2,3,4,5];
+            }
+            const stats = fetchOfficialStats(); 
+            stats[official].availableDays = availableDays;
+            
+            // NOTE: We no longer read adjustment from the table cell because it is now a button managed by the popup.
+            // The adjustment data is preserved in the stats object.
+
+            saveOfficialStats(stats);
+            alert("Available days saved for " + official);
+            // location.reload(); // No need to reload, just update table
+            populateOfficialsTable();
+        }
+
+
+        function showMatchesForOfficial(official) {
+            const matches = fetchMatches();
+            const officialMatches = matches.filter(match => match.official === official);
+            const matchContent = document.getElementById("match-content");
+            // Set scrollable container styles.
+            matchContent.style.maxHeight = "200px";
+            matchContent.style.overflowY = "auto";
+            matchContent.innerHTML = "";
+            if (officialMatches.length === 0) {
+            matchContent.innerHTML = `<p>No matches officiated by ${official}.</p>`;
+            } else {
+            const ul = document.createElement("ul");
+            ul.style.listStyleType = "none";
+            ul.style.margin = 0;
+            ul.style.padding = 0;
+            officialMatches.forEach(match => {
+                const li = document.createElement("li");
+                li.style.padding = "4px 0";
+                li.innerHTML = `${match.teamAID} vs ${match.teamBID} - Score: ${match.set1.join(':')} | ${match.set2.join(':')} | ${match.set3.join(':')}`;
+                ul.appendChild(li);
+            });
+            matchContent.appendChild(ul);
+            }
+            document.getElementById("modal-overlay").style.display = "block";
+            document.getElementById("match-modal").style.display = "block";
+        }
+        document.getElementById("modal-overlay").onclick = closeModal;
+        function closeModal() {
+            document.getElementById("modal-overlay").style.display = "none";
+            document.getElementById("match-modal").style.display = "none";
+            document.getElementById("adjustment-modal").style.display = "none";
+            currentEditingOfficial = null;
+        }
+        document.getElementById('save-all-official').addEventListener('click', () => {
+            const rows = document.querySelectorAll("#officials-table-body tr");
+            let stats = fetchOfficialStats();
+            rows.forEach(row => {
+                const officialName = row.cells[0].innerText.trim();
+                const availableDaysText = row.cells[1].innerText.trim();
+                let availableDays = availableDaysText.split(',')
+                    .map(s => parseInt(s.trim(), 10))
+                    .filter(n => !isNaN(n));
+                if (availableDays.length === 0) {
+                    availableDays = [1,2,3,4,5];
+                }
+                if (stats[officialName]) {
+                    stats[officialName].availableDays = availableDays;
+                }
+                // We skip adjustment saving here as it is handled by the modal
+            });
+            saveOfficialStats(stats);
+            alert("All officials' days saved successfully.");
+            populateOfficialsTable();
+        });
+
+        // --- NEW CASHOUT LOGIC ---
+        document.getElementById('cashout-all').addEventListener('click', () => {
+            if (!confirm("Are you sure you want to cash out ALL officials? This will add a negative adjustment to zero out everyone's current balance.")) {
+                return;
+            }
+
+            const stats = fetchOfficialStats();
+            const payPerMatch = parseInt(document.getElementById("pay-per-match").value) || 0;
+            let updatedCount = 0;
+
+            Object.keys(stats).forEach(officialName => {
+                const officialData = stats[officialName];
+                
+                // Calculate current balance
+                const { total: currentAdjustment } = getAdjustmentData(officialData);
+                const matchCount = officialData.count || 0;
+                const currentBalance = (matchCount * payPerMatch) + currentAdjustment;
+
+                // Only cash out if there is a non-zero balance
+                if (currentBalance !== 0) {
+                    // Ensure history array exists
+                    if (!officialData.adjustmentHistory) {
+                        if (officialData.adjustment) {
+                            officialData.adjustmentHistory = [{
+                                amount: parseInt(officialData.adjustment),
+                                note: "Legacy Adjustment",
+                                date: new Date().toLocaleDateString()
+                            }];
+                        } else {
+                            officialData.adjustmentHistory = [];
+                        }
+                    }
+
+                    // Add cashout adjustment
+                    officialData.adjustmentHistory.push({
+                        amount: -currentBalance,
+                        note: "Cashout",
+                        date: new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString()
+                    });
+
+                    // Update legacy field
+                    const newTotal = officialData.adjustmentHistory.reduce((sum, item) => sum + item.amount, 0);
+                    officialData.adjustment = newTotal;
+                    
+                    updatedCount++;
+                }
+            });
+
+            if (updatedCount > 0) {
+                saveOfficialStats(stats);
+                populateOfficialsTable();
+                alert(`Successfully cashed out ${updatedCount} officials.`);
+            } else {
+                alert("No officials had a non-zero balance to cash out.");
+            }
+        });
+
+        window.onload = function() {
+            loadPayPerMatch();
+            populateOfficialsTable();
+        };
+    </script>
+</body>
+</html>

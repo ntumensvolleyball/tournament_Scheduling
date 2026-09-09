@@ -1,0 +1,475 @@
+.match-list-page .label {
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+.match-list-page .match {
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    padding: 15px;
+    margin-bottom: 10px;
+    background-color: var(--color-surface);
+}
+
+.match-list-page .match input,
+.match-list-page .score-input {
+    width: 35px;
+    text-align: center;
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-sm);
+    padding: 4px;
+}
+
+.match-list-page .match input {
+    margin: 5px 0;
+}
+
+.match-list-page .match label {
+    font-weight: bold;
+    text-align: center;
+}
+
+.delete-match {
+    margin-top: 10px;
+    padding: 8px 12px;
+    background-color: #cf4d4d;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.save-button {
+    margin-top: 10px;
+    padding: 8px 12px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.save-button:hover {
+    background-color: #0056b3;
+}
+
+.match-list-page .popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--color-surface);
+    padding: 30px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    z-index: 1000;
+    max-width: 500px;
+    width: 90%;
+}
+
+.match-list-page .popup-overlay {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    display: none;
+}
+
+.match-list-page .popup-content {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    border-radius: var(--radius-md);
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.search-input {
+    width: 85%;
+    padding: 10px 15px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    transition: border-color var(--motion-fast);
+}
+
+.search-input:focus {
+    border-color: var(--color-primary);
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+}
+
+.scrolling-list {
+    max-height: 150px;
+    overflow-y: auto;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    margin-top: 8px;
+    background: #f8f9fa;
+    padding: 5px;
+}
+
+.popup-buttons {
+    display: flex;
+    gap: 12px;
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 20px 0;
+}
+
+.calendar-grid,
+#calendar-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 5px;
+}
+
+.calendar-grid {
+    margin-bottom: 10px;
+}
+
+.weekday-header {
+    text-align: center;
+    font-weight: bold;
+    padding: 10px;
+    background: #f0f0f0;
+}
+
+.calendar-day {
+    min-height: 100px;
+    border: 1px solid var(--color-border);
+    padding: 5px;
+    background: var(--color-surface);
+}
+
+.calendar-day.other-month {
+    background: var(--color-surface-muted);
+    color: #999;
+}
+
+.calendar-date {
+    font-size: 0.8em;
+    color: var(--color-text-muted);
+    margin-bottom: 5px;
+}
+
+.calendar-matches {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.calendar-match {
+    background: #e0e0e0;
+    padding: 5px;
+    border-radius: 3px;
+    font-size: 0.9em;
+    cursor: pointer;
+}
+
+.calendar-match:hover {
+    background: #d0d0d0;
+}
+
+.matches-container-wrapper {
+    position: relative;
+    height: calc(100vh - 150px);
+    display: flex;
+    flex-direction: column;
+}
+
+.scrollable-matches {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding-bottom: 70px;
+    border-radius: var(--radius-md);
+}
+
+.save-all-button {
+    background-color: var(--color-primary);
+    color: #fff;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 25px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all var(--motion-fast);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.save-all-button:hover {
+    background-color: var(--color-primary-hover);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.page-header {
+    background: var(--color-surface);
+    padding: 20px;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+}
+
+.subtitle {
+    color: var(--color-text-muted);
+    margin: 0 0 20px 0;
+    font-size: 1.1em;
+}
+
+.action-container,
+.action-buttons,
+.header-top,
+.match-container,
+.date-official-container,
+.div-for-form-groups {
+    display: flex;
+}
+
+.action-container {
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+}
+
+.action-buttons {
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.action-btn i {
+    font-size: 1.1em;
+}
+
+.action-btn.warningbutmoresubtle {
+    background: #ff6f00;
+    color: #fff;
+}
+
+.action-btn.warningbutmoresubtle:hover {
+    background: #ce5900;
+}
+
+.search-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-icon {
+    position: absolute;
+    right: 10px;
+    color: #888;
+    cursor: pointer;
+}
+
+.header-top {
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.match-list-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.match-list-page .back-link {
+    padding: 10px 20px;
+}
+
+.undo-button {
+    background-color: var(--color-primary);
+    color: #fff;
+    padding: 8px 16px;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background-color var(--motion-fast);
+}
+
+.undo-button:hover {
+    background-color: var(--color-primary-hover);
+}
+
+.undo-container {
+    position: sticky;
+    top: 10px;
+    z-index: 100;
+}
+
+.match-container {
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    border: 1px solid var(--color-border);
+    background: #f9f9f9;
+}
+
+.group-label,
+.team-label {
+    text-align: center;
+}
+
+.set-container {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.date-official-container {
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+.date-input-container {
+    min-width: 100px;
+    flex: 1;
+}
+
+.match-date-input {
+    max-width: 220px;
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid var(--color-border-strong);
+    border-radius: 6px;
+}
+
+.official-search {
+    min-width: 150px;
+    flex: 1;
+}
+
+.div-for-form-groups {
+    flex-direction: row;
+    gap: 12px;
+    justify-content: space-between;
+}
+
+.phone-hidden {
+    display: block;
+}
+
+.match-list-page .action-container {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+@media (max-width: 768px) {
+    .match-list-page .phone-hidden,
+    .official-label {
+        display: none;
+    }
+
+    .match-list-page .action-btn {
+        font-size: 0.8em;
+    }
+
+    .match-list-page .action-buttons {
+        display: none;
+        flex-direction: column;
+        align-items: flex-end;
+        justify-content: flex-start;
+        right: 12px;
+        top: 72px;
+        z-index: 998;
+    }
+
+    .group-label,
+    .team-label,
+    .set-container,
+    .date-official-container {
+        width: 100%;
+    }
+
+    .delete-match {
+        align-self: center;
+        width: 100%;
+    }
+
+    .match-container {
+        flex-direction: column;
+        align-items: center;
+        padding: 2px;
+        font-size: 12px;
+    }
+
+    .set-container {
+        font-size: 12px;
+        justify-content: center;
+        left: 50%;
+    }
+
+    .match-list-page .score-input {
+        width: 12px;
+        border-radius: 2px;
+    }
+
+    .date-input-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        margin: 0 auto;
+    }
+
+    .date-input-container input {
+        margin: 0 auto;
+        max-width: 220px;
+        width: 100%;
+    }
+
+    .date-official-container {
+        justify-content: center;
+        left: 50%;
+    }
+
+    .match-list-page .popup {
+        width: 75%;
+        height: 55%;
+        padding: 10px;
+    }
+
+    .search-input {
+        width: 70%;
+    }
+
+    .scrolling-list {
+        max-height: 100px;
+    }
+
+    .match-list-page .btn-primary,
+    .match-list-page .btn-secondary {
+        display: inline-flex;
+        width: auto;
+        min-width: 48px;
+        min-height: 44px;
+        padding: 8px 12px;
+        font-size: 14px;
+    }
+
+    .page-header {
+        padding: 8px;
+        margin-bottom: 20px;
+    }
+}

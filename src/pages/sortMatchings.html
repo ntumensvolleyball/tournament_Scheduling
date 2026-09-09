@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../utility/volleyball.png" type="image/png">
+    <title>Sort Matchings</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="base.css">
+    <link rel="stylesheet" href="sortMatchings.css">
+    <link rel="stylesheet" href="popup.css">
+    <link rel="stylesheet" href="renderMatchInDayBox.css">
+    <link rel="stylesheet" href="darkmode.css">
+</head>
+<body class="page sort-matchings-page">
+    <script src = '../utility/dataStorage.js'></script>
+    <script src = '../utility/renderMatchInDayBox.js'></script>
+    <script src = '../utility/Matchinfo.js'></script>
+    <a href="../../index.html" class="back-link">
+        <i class="fas fa-arrow-left"></i>
+        Back to Main Page
+    </a>
+    <h1>Sort Matchings</h1>
+    <div id = 'matches-left'></div>
+    <div class="action-buttons phone-hidden">
+        <button id="batch-input-newbie" class="action-btn primary phone-hidden">
+            <i class="fas fa-list"></i>
+            Batch Input Newbie Days
+        </button>
+        <button id="batch-input" class="action-btn primary phone-hidden">
+            <i class="fas fa-list"></i>
+            Batch Input Available Days
+        </button>
+        <button id="reset-availability" class="action-btn danger phone-hidden">
+            <i class="fas fa-trash"></i>
+            Reset All Teams Availability
+        </button>
+    </div>
+
+    <!-- Popup structure for match info -->
+    <div class="popup-overlay hidden" id="popup-overlay"></div>
+    <div class="popup hidden" id="popup">
+        <div class="popup-content" id="popup-content"></div>
+    </div>
+
+    <!-- Popup structure for holiday-->
+    <div class="popup-overlay-holiday hidden" id="holiday-popup-overlay"></div>
+    <div class="popup-holiday hidden" id="holiday-popup">
+        <div class="popup-content" id="holiday-content"></div>
+    </div>
+
+    <!-- Batch Input Popup -->
+    <div class="popup-overlay" id="batch-popup-overlay"></div>
+    <div class="popup" id="batch-popup">
+        <div class="input-container">
+            <h3>Batch Input for Team Availability</h3>
+            <div class="instructions">
+                <p>Format: Team Name 不可比賽日1 不可比賽日2</p>
+                <p>Example:</p>
+                <pre>
+資工 五 四
+森林 二 四
+心理 二 四</pre>
+            </div>
+            <textarea 
+                id="batchInput" 
+                rows="10" 
+                placeholder="Paste your team availability data here..."
+                class="batch-textarea"
+            ></textarea>
+            <button id="processBatchInput" class="process-button">Process Teams</button>
+            <div id="processResult" class="process-result"></div>
+        </div>
+    </div>
+
+    <!-- Newbie Batch Input Popup -->
+    <div class="popup-overlay" id="batch-popup-overlay-newbie"></div>
+    <div class="popup" id="batch-popup-newbie">
+        <div class="input-container">
+            <h3>Batch Input for Newbie Team Availability</h3>
+            <div class="instructions">
+                <p>Format: Team Name 不可比賽日1 不可比賽日2</p>
+                <p>Example:</p>
+                <pre>
+資工 五 四
+森林 二 四
+心理 二 四</pre>
+            </div>
+            <textarea 
+                id="batchInputNewbie" 
+                rows="10" 
+                placeholder="Paste your team availability data here..."
+                class="batch-textarea"
+            ></textarea>
+            <button id="processBatchInputNewbie" class="process-button">Process Teams</button>
+            <div id="processResultNewbie" class="process-result"></div>
+        </div>
+    </div>
+
+    <!-- Add this after the existing popups -->
+    <div class="container">
+        <div class="match-list phone-hidden">
+            <select id="sort-type" class="team-selector">
+                <option value="tier">Sort by Group</option>
+                <option value="day">Sort by Day</option>
+            </select>
+            
+            <div id="undated-matches"></div>
+        </div>
+        
+        <div class="calendar">
+            <div class="calendar-nav">
+                <div class="calendar-controls">
+                    <button id="prev-week" class="nav-btn-week">
+                        <i class="fas fa-chevron-left"></i>
+                        <span class="nav-text">Previous Week</span>
+                    </button>
+                    <span>
+                    <button id="save-assignments" class="save-btn phone-hidden">
+                        <i class="fas fa-save"></i>
+                        <span class="nav-text">Save Assignments</span>
+                    </button>
+                    <button id="auto-sort" class="save-btn phone-hidden">
+                        <i class="fas fa-wand-magic-sparkles"></i>
+                        <span class="nav-text">Auto Sort</span>
+                    </button>
+                    <button id="fb-announcement" class="nav-btn">
+                        <i class="fas fa-sync"></i>
+                        <span class="nav-text">FB Announcement Generator</span>
+                    </button>
+                    </span>
+                    <button id="next-week" class="nav-btn-week">
+                        <span class="nav-text">Next Week</span>
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+            <div id="week-view"></div>
+            <div id="week-view-phone" class="week-view-phone phone-only"></div>
+        </div>
+    </div>
+
+    <!-- Add a new popup for announcements (place it anywhere near your other popups) -->
+    <div class="popup-overlay" id="announcement-popup-overlay"></div>
+    <div class="popup" id="announcement-popup">
+        <div class="input-container">
+            <h3>FB Announcement</h3>
+            <div>
+                <button class="copy-button" onclick="copyAnnouncementText()" title="Copy announcement"><i class="fas fa-copy"></i></button>
+                <button id="copy-feedback" class="copy-feedback">Copied!</button>
+                <textarea id="announcement-content" class="announcement-content"></textarea>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Utility functions
+
+        document.getElementById('batch-input').addEventListener('click', () => {
+            document.getElementById('batch-popup-overlay').style.display = 'block';
+            document.getElementById('batch-popup').style.display = 'block';
+        });
+
+        document.getElementById('processBatchInput').addEventListener('click', () => {
+            let teams = fetchTeams();
+            const matches = fetchMatches();
+            const input = document.getElementById('batchInput').value;
+            const resultDiv = document.getElementById('processResult');
+            resultDiv.innerHTML = '';
+            
+            input.split('\n').forEach((line, index) => {
+                const cleanLine = line.trim().replace(/\s+/g, ' ');
+                if (!cleanLine) return;
+                
+                const parts = cleanLine.split(/[\s\t]+/);
+                if (parts.length >= 3) {
+                    const [teamId, day1, day2] = parts;
+                    const resultItem = document.createElement('div');
+                    resultItem.className = 'result-item';
+                    
+                    try {
+                        if (teams[teamId]) {
+                            const unavailableDays = [
+                                Number(convertChineseNumberToArabic(day1)),
+                                Number(convertChineseNumberToArabic(day2))
+                            ];
+                            teams[teamId].availableDays = calculateAvailableDays(unavailableDays);
+                            
+                            resultItem.classList.add('success');
+                            resultItem.innerHTML = `
+                                <span>✓ ${teamId}</span>
+                                <span>不可比賽日: ${day1}, ${day2}</span>
+                            `;
+                            // Update matches involving this team
+                            Object.values(matches).forEach((match, index) => {
+                                if (!match.newbie && !match.custom && (match.teamAID === teamId || match.teamBID === teamId)) {
+                                    matches[index].availableDays = calculateMatchAvailableDays(match.teamAID, match.teamBID, false, false);
+                                }
+                            });
+                            
+                            // Save both teams and matches
+                            saveTeams(teams);
+                            saveMatches(matches);
+                        } else {
+                            resultItem.classList.add('error');
+                            resultItem.textContent = `✗ Team not found: ${teamId}`;
+                        }
+                    } catch (error) {
+                        resultItem.classList.add('error');
+                        resultItem.textContent = `✗ Error processing line ${index + 1}: ${cleanLine}`;
+                    }
+                    
+                    resultDiv.appendChild(resultItem);
+                } else if (cleanLine) {
+                    const resultItem = document.createElement('div');
+                    resultItem.className = 'result-item error';
+                    resultItem.textContent = `✗ Invalid format in line ${index + 1}: ${cleanLine}`;
+                    resultDiv.appendChild(resultItem);
+                }
+            });
+            
+            
+            // Save both teams and matches
+            saveTeams(teams);
+            updateWeekView();
+            updateWeekViewPhone();
+            renderUndatedMatches();
+            renderUndatedMatchCount();
+        });
+
+        document.getElementById('batch-popup-overlay').addEventListener('click', () => {
+            document.getElementById('batch-popup-overlay').style.display = 'none';
+            document.getElementById('batch-popup').style.display = 'none';
+        });
+
+        // Newbie Batch Input Implementation
+
+        document.getElementById('batch-input-newbie').addEventListener('click', () => {
+            document.getElementById('batch-popup-overlay-newbie').style.display = 'block';
+            document.getElementById('batch-popup-newbie').style.display = 'block';
+        });
+
+        document.getElementById('processBatchInputNewbie').addEventListener('click', () => {
+            let teams = fetchNewbieTeams();
+            const matches = fetchMatches();
+            const input = document.getElementById('batchInputNewbie').value;
+            const resultDiv = document.getElementById('processResultNewbie');
+            resultDiv.innerHTML = '';
+            
+            input.split('\n').forEach((line, index) => {
+                const cleanLine = line.trim().replace(/\s+/g, ' ');
+                if (!cleanLine) return;
+                
+                const parts = cleanLine.split(/[\s\t]+/);
+                if (parts.length >= 3) {
+                    const [teamId, day1, day2] = parts;
+                    const resultItem = document.createElement('div');
+                    resultItem.className = 'result-item';
+                    
+                    try {
+                        if (teams[teamId]) {
+                            const unavailableDays = [
+                                Number(convertChineseNumberToArabic(day1)),
+                                Number(convertChineseNumberToArabic(day2))
+                            ];
+                            teams[teamId].availableDays = calculateAvailableDays(unavailableDays);
+                            
+                            resultItem.classList.add('success');
+                            resultItem.innerHTML = `
+                                <span>✓ ${teamId}</span>
+                                <span>不可比賽日: ${day1}, ${day2}</span>
+                            `;
+                            // Update matches involving this team
+                            Object.values(matches).forEach((match, index) => {
+                                if (match.newbie && !match.custom && (match.teamAID === teamId || match.teamBID === teamId)) {
+                                    matches[index].availableDays = calculateMatchAvailableDays(match.teamAID, match.teamBID, true, false);
+                                }
+                            });
+                            
+                            // Save both teams and matches
+                            saveNewbieTeams(teams);
+                            saveMatches(matches);
+                        } else {
+                            resultItem.classList.add('error');
+                            resultItem.textContent = `✗ Team not found: ${teamId}`;
+                        }
+                    } catch (error) {
+                        resultItem.classList.add('error');
+                        resultItem.textContent = `✗ Error processing line ${index + 1}: ${cleanLine}`;
+                    }
+                    
+                    resultDiv.appendChild(resultItem);
+                } else if (cleanLine) {
+                    const resultItem = document.createElement('div');
+                    resultItem.className = 'result-item error';
+                    resultItem.textContent = `✗ Invalid format in line ${index + 1}: ${cleanLine}`;
+                    resultDiv.appendChild(resultItem);
+                }
+            });
+            
+            
+            // Save both teams and matches
+            saveNewbieTeams(teams);
+            updateWeekView();
+            updateWeekViewPhone();
+            renderUndatedMatches();
+            renderUndatedMatchCount();
+        });
+
+        document.getElementById('batch-popup-overlay-newbie').addEventListener('click', () => {
+            document.getElementById('batch-popup-overlay-newbie').style.display = 'none';
+            document.getElementById('batch-popup-newbie').style.display = 'none';
+        });
+
+        
+        // WeekView
+
+        let currentWeekStart = new Date();
+        currentWeekStart.setHours(0, 0, 0, 0); // Reset to midnight
+        currentWeekStart.setDate(currentWeekStart.getDate() - currentWeekStart.getDay() + 8);
+        const WEEKDAY_NUMBERS = [1, 2, 3, 4, 5];
+        const AUTO_SORT_MATCHES_PER_DAY = 3;
+        const DEFAULT_AVAILABLE_DAYS = [1, 2, 3, 4, 5];
+        const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+        let selectedMatch = null;
+        let selectedDayFilter = null;
+        let tempAssignments = new Map();
+        let firstRender = true;
+
+        function getDateKey(date) {
+            return date.getFullYear() +
+                '-' + String(date.getMonth() + 1).padStart(2, '0') +
+                '-' + String(date.getDate()).padStart(2, '0');
+        }
+
+        function getWeekDate(dayNumber) {
+            const date = new Date(currentWeekStart);
+            date.setDate(currentWeekStart.getDate() + dayNumber - 1);
+            return date;
+        }
+
+        function getWeekDayNumber(date) {
+            const dayIndex = Math.floor((date - currentWeekStart) / (1000 * 60 * 60 * 24));
+            return dayIndex + 1;
+        }
+
+        function getMatchKey(match) {
+            return `${match.id}`;
+        }
+
+        function calculateStoredMatchAvailableDays(match) {
+            return calculateMatchAvailableDays(
+                match.teamAID,
+                match.teamBID,
+                Boolean(match.newbie),
+                Boolean(match.custom)
+            );
+        }
+
+        function normalizeAvailableDays(match) {
+            if (match.custom) {
+                return calculateStoredMatchAvailableDays(match).map(day => Number(day));
+            }
+
+            const availableDays =
+                Array.isArray(match.availableDays) && match.availableDays.length > 0
+                    ? match.availableDays
+                    : DEFAULT_AVAILABLE_DAYS;
+            return availableDays.map(day => Number(day));
+        }
+
+        function isMatchAvailableOnDay(match, dayNumber) {
+            return normalizeAvailableDays(match).includes(Number(dayNumber));
+        }
+
+        function getMatchTeams(match) {
+            return [match.teamAID, match.teamBID].filter(Boolean);
+        }
+
+        function getMatchDivision(match) {
+            return match.group?.split('-')[0] || match.group || 'Unassigned';
+        }
+
+        function isRealTeamMatch(match) {
+            return match.teamAID && match.teamBID && match.teamAID !== match.teamBID;
+        }
+
+        function isAssignmentInCurrentWeek(assignment) {
+            const dayNumber = getWeekDayNumber(assignment.date);
+            return dayNumber >= 1 && dayNumber <= 7;
+        }
+
+        function getAssignmentsForDay(dayNumber) {
+            return Array.from(tempAssignments.values()).filter(assignment =>
+                getWeekDayNumber(assignment.date) === Number(dayNumber)
+            );
+        }
+
+        function getAssignedTeamIdsForWeek() {
+            const teamIds = new Set();
+            tempAssignments.forEach(assignment => {
+                if (!isAssignmentInCurrentWeek(assignment)) return;
+                getMatchTeams(assignment.match).forEach(teamId => teamIds.add(teamId));
+            });
+            return teamIds;
+        }
+
+        function getAssignedDivisionsForDay(dayNumber) {
+            return new Set(getAssignmentsForDay(dayNumber).map(assignment => getMatchDivision(assignment.match)));
+        }
+
+        function hasWeeklyTeamConflict(match, assignedTeamIds) {
+            return getMatchTeams(match).some(teamId => assignedTeamIds.has(teamId));
+        }
+
+        function getUnassignedMatches() {
+            return fetchMatches().filter(match => {
+                const key = getMatchKey(match);
+                return !match.date && !tempAssignments.has(key) && (match.teamAID !== match.teamBID || match.teamAID === null);
+            });
+        }
+
+        function getAutoSortCandidatesForDay(dayNumber) {
+            const assignedTeamIds = getAssignedTeamIdsForWeek();
+            return getUnassignedMatches().filter(match =>
+                isRealTeamMatch(match) &&
+                isMatchAvailableOnDay(match, dayNumber) &&
+                !hasWeeklyTeamConflict(match, assignedTeamIds)
+            );
+        }
+
+        function chooseAutoSortMatch(dayNumber, candidates) {
+            const dayDivisions = getAssignedDivisionsForDay(dayNumber);
+            return [...candidates].sort((matchA, matchB) => {
+                const matchAHasNewDivision = dayDivisions.has(getMatchDivision(matchA)) ? 1 : 0;
+                const matchBHasNewDivision = dayDivisions.has(getMatchDivision(matchB)) ? 1 : 0;
+                if (matchAHasNewDivision !== matchBHasNewDivision) return matchAHasNewDivision - matchBHasNewDivision;
+
+                const matchAAvailability = normalizeAvailableDays(matchA).length;
+                const matchBAvailability = normalizeAvailableDays(matchB).length;
+                if (matchAAvailability !== matchBAvailability) return matchAAvailability - matchBAvailability;
+
+                return String(matchA.group || '').localeCompare(String(matchB.group || '')) || matchA.id - matchB.id;
+            })[0];
+        }
+
+        function addTemporaryAssignment(match, date, previouslyAssigned = false) {
+            tempAssignments.set(getMatchKey(match), {
+                match: match,
+                date: new Date(date),
+                previouslyAssigned: previouslyAssigned
+            });
+        }
+
+        function selectDayFilter(dayNumber, date) {
+            if (!WEEKDAY_NUMBERS.includes(dayNumber)) return;
+            selectedDayFilter = {
+                dayNumber: dayNumber,
+                dateKey: getDateKey(date)
+            };
+            document.querySelectorAll('.day-box').forEach((box, index) => {
+                box.classList.toggle('selected-day', index + 1 === dayNumber);
+            });
+            renderUndatedMatches();
+        }
+
+
+        function updateWeekView() {
+            const weekView = document.getElementById('week-view');
+            weekView.innerHTML = '';
+            for (let i = 0; i < 7; i++) {
+                const date = new Date(currentWeekStart);
+                date.setDate(date.getDate() + i);
+                const dayBox = document.createElement('div');
+                dayBox.className = 'day-box phone-hidden';
+                if (selectedDayFilter?.dateKey === getDateKey(date)) {
+                    dayBox.classList.add('selected-day');
+                }
+                dayBox.innerHTML = `
+                    <div class="day-name phone-hidden">${date.toLocaleDateString('en-US', { weekday: 'short' })}</div>
+                    <div class="day-date phone-hidden">${formatDate(date)}</div>
+                    
+                    <div class="day-matches phone-hidden"></div>
+                `;
+                // show conti.png to the right when it's Friday (getDay() === 5)
+                const isFriday = date.getDay() === 5;
+                const contiHtml = isFriday ? `<img src="../assets/conti.png" class="conti-icon" alt="conti">` : '';
+                dayBox.innerHTML = `
+                    <div class="day-header">
+                        <div class="day-info">
+                            <div class="day-name phone-hidden">${date.toLocaleDateString('en-US', { weekday: 'short' })}</div>
+                            <div class="day-date phone-hidden">${formatDate(date)}</div>
+                        </div>
+                        ${contiHtml}
+                    </div>
+                    <div class="day-matches phone-hidden"></div>
+                `;
+                dayBox.addEventListener('dragover', e => {
+                    e.preventDefault();
+                });
+                
+                dayBox.addEventListener('drop', e => {
+                    e.preventDefault();
+                    if (selectedMatch) {
+                        const dayOfWeek = i + 1;
+                        handleMatchDrop(selectedMatch, dayOfWeek, date);
+                    }
+                });
+                dayBox.addEventListener('click', () => {
+                    selectDayFilter(i + 1, date);
+                });
+                
+                weekView.appendChild(dayBox);
+            }
+            
+            // Show existing assignments
+            displayAssignedMatches();
+            renderUndatedMatches(); 
+        }
+        function updateWeekViewPhone() {
+            renderCalendar();
+        }
+        
+        function renderCalendar() {
+            const matches = fetchMatches();
+            
+            const date = new Date(currentWeekStart);
+            const year = date.getFullYear();
+            const month = date.getMonth();
+            const weekView = document.getElementById('week-view-phone');  
+
+            weekView.innerHTML = ''; // Clear previous content
+            // Add current month days
+            dayofWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            for (let day = 0; day < 7; day++) {
+                const d = new Date(date);
+                d.setDate(date.getDate() + day);
+                const dateStr = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+                const dayDiv = createDayDiv(dayofWeek[day], false, dateStr);
+                // Add matches for this day
+                const dayMatches = Object.values(matches).filter(match => match.date === dateStr);
+                const matchesContainer = dayDiv.querySelector('.calendar-matches');
+                dayMatches.forEach(match => {
+                    createMatchDiv(match, dayDiv, matchesContainer, dateStr);
+                });
+                weekView.appendChild(dayDiv);
+                document.getElementById(dateStr).addEventListener("click", async () => {
+                    showPopup(dateStr);  //for add match to date
+                });
+            }
+
+        }
+
+        function handleMatchDrop(match, dayOfWeek, date) {
+            if (dayOfWeek <= 7) { // Only allow drops on weekdays
+                addTemporaryAssignment(match, date, false);
+                //console.log("matchDrop", match);
+                //console.log('tampMatchDate', date)
+                displayAssignedMatches();
+                renderUndatedMatches(); // Re-render undated matches to keep them visible
+                renderUndatedMatchCount();
+            }
+        }
+
+        function displayAssignedMatches() {
+            // Clear all day-matches
+            document.querySelectorAll('.day-matches').forEach(div => div.innerHTML = '');
+            // Display past assignments
+            matches = fetchMatches();
+            if(firstRender){
+                Object.values(matches).forEach(match => {
+                    const date = new Date(match.date); // Ensure date is a Date object
+                    const dayIndex = Math.floor((date - currentWeekStart) / (1000 * 60 * 60 * 24));
+
+                    if (dayIndex >= 0 && dayIndex < 7) {
+                        addTemporaryAssignment(match, date, true);
+                    }   
+                });
+                firstRender = false;
+            }
+            
+            
+            // Display assignments 
+
+            tempAssignments.forEach((assignment, key) => {
+                const date = assignment.date;
+                const dayIndex = Math.floor((date - currentWeekStart) / (1000 * 60 * 60 * 24));
+                if (dayIndex >= 0 && dayIndex < 7) {
+                    if (assignment.match.locked === undefined) {
+                        assignment.match.locked = false; // Initialize if undefined
+                    }
+                    const dayBox = document.querySelectorAll('.day-matches')[dayIndex];
+                    const matchDiv = document.createElement('div');
+                    matchDiv.className = assignment.previouslyAssigned === false ? "assigned-match" : "past-assigned-match";
+                    matchDiv.textContent = `${assignment.match.teamAID} vs ${assignment.match.teamBID}`;
+
+                    if (assignment.match.set1[0] !== 0 || assignment.match.set1[1] !== 0) {
+                        if (assignment.match.status) matchDiv.classList.add('finished');
+                        else matchDiv.classList.add('unfinished');
+                    }
+                    // Long press to lock/unlock the match
+                    let longPressTimer;
+                    matchDiv.addEventListener('mousedown', () => {
+                        if (!matchDiv.classList.contains('dragging')) { // Check if not dragging
+                            longPressTimer = setTimeout(() => {
+                                assignment.match.locked = !assignment.match.locked;
+                                displayAssignedMatches();
+                            }, 768); // 1 second for long press
+                        }
+                        
+                    });
+                    if (assignment.match.locked) {
+                        const lockIcon = document.createElement('i');
+                        lockIcon.className = 'fas fa-lock locked';
+                        matchDiv.appendChild(lockIcon);
+                        matchDiv.draggable = false; // Disable dragging
+                    }else{
+                        matchDiv.draggable = true; // Enable dragging
+                        // Add drag events to assigned match
+                        matchDiv.addEventListener('dragstart', () => {
+                            clearTimeout(longPressTimer)
+                            selectedMatch = assignment.match;
+                            matchDiv.classList.add('dragging');
+                            // Remove the current assignment when starting to drag
+                        tempAssignments.delete(key);
+                    });
+                        
+                        matchDiv.addEventListener('dragend', () => {
+                            matchDiv.classList.remove('dragging');
+                            displayAssignedMatches();
+                        });
+                    }
+                    matchDiv.addEventListener('mouseup', () => {
+                        if (longPressTimer) clearTimeout(longPressTimer);
+                    });
+                    matchDiv.addEventListener('mouseleave', () => {
+                        if (longPressTimer) clearTimeout(longPressTimer);
+                    });
+                    matchDiv.addEventListener('dragenter', (e) => {
+                        e.preventDefault();
+                        matchDiv.classList.add('dragging');
+                    });
+                
+                    matchDiv.addEventListener('click', (event) => {
+                        event.stopPropagation();
+                        highlightAvailableDays(assignment.match);
+                    });
+                    
+                    dayBox.appendChild(matchDiv);
+                }
+            });
+        }
+
+        function renderUndatedMatches() {
+            const undatedMatches = getUnassignedMatches();
+            const container = document.getElementById('undated-matches');
+            container.innerHTML = '';
+
+            if (selectedDayFilter) {
+                renderAvailableMatchesForDay(container, undatedMatches, selectedDayFilter.dayNumber);
+                return;
+            }
+            
+            const sortType = document.getElementById('sort-type').value;
+            //console.log('Sort type:', sortType); // Debug log
+            
+            if (sortType === 'tier') {
+                const tiers = {};
+                undatedMatches.forEach(match => {
+                    const tier = match.group?.split('-')[0] || 'Unassigned';
+                    if (!tiers[tier]) tiers[tier] = [];
+                    tiers[tier].push(match);
+                });
+                
+                Object.keys(tiers).sort().forEach(tier => {
+                    const section = document.createElement('div');
+                    section.className = 'tier-section';
+                    section.innerHTML = `<div class="tier-title">${tier}</div>`;
+                    
+                    const matchesGrid = document.createElement('div');
+                    matchesGrid.className = 'matches-grid';
+                    
+                    tiers[tier].forEach(match => {
+                        const matchBox = createMatchBox(match);
+                        matchesGrid.appendChild(matchBox);
+                    });
+                    
+                    section.appendChild(matchesGrid);
+                    container.appendChild(section);
+                });
+            } else if (sortType === 'day') { // Make sure this matches your select option value
+                //console.log('Sorting by day'); // Debug log
+                const dayMatches = Object.fromEntries(DAY_NAMES.map(dayName => [dayName, []]));
+                
+                //console.log('Undated matches:', undatedMatches); // Debug log
+                
+                undatedMatches.forEach(match => {
+                    //console.log('Processing match:', match); // Debug log
+                    //log('Available days:', match.availableDays); // Debug log
+                    
+                    normalizeAvailableDays(match).forEach(day => {
+                        const dayName = DAY_NAMES[day-1];
+                        if (dayName) dayMatches[dayName].push(match);
+                    });
+                });
+                
+                //console.log('Day matches:', dayMatches); // Debug log
+                
+                Object.keys(dayMatches).forEach(day => {
+                    const section = document.createElement('div');
+                    section.className = 'tier-section';
+                    section.innerHTML = `<div class="tier-title">${day}</div>`;
+                    
+                    const matchesGrid = document.createElement('div');
+                    matchesGrid.className = 'matches-grid';
+                    
+                    dayMatches[day].forEach(match => {
+                        const matchBox = createMatchBox(match);
+                        matchesGrid.appendChild(matchBox);
+                    });
+                    
+                    section.appendChild(matchesGrid);
+                    container.appendChild(section);
+                });
+            }
+
+        }
+
+        function renderAvailableMatchesForDay(container, matches, dayNumber) {
+            const dayName = DAY_NAMES[dayNumber - 1];
+            const availableMatches = matches.filter(match =>
+                isMatchAvailableOnDay(match, dayNumber) &&
+                (match.teamAID !== match.teamBID || match.teamAID === null)
+            );
+            const section = document.createElement('div');
+            section.className = 'tier-section';
+            section.innerHTML = `<div class="tier-title">Available on ${dayName} (${availableMatches.length})</div>`;
+
+            const matchesGrid = document.createElement('div');
+            matchesGrid.className = 'matches-grid';
+            availableMatches
+                .sort((matchA, matchB) =>
+                    getMatchDivision(matchA).localeCompare(getMatchDivision(matchB)) || matchA.id - matchB.id
+                )
+                .forEach(match => {
+                    matchesGrid.appendChild(createMatchBox(match));
+                });
+
+            section.appendChild(matchesGrid);
+            container.appendChild(section);
+        }
+
+        function createMatchBox(match) {
+            const box = document.createElement('div');
+            box.className = 'match-box'; // Default style
+            if (match.status) box.classList.add('match-box-sameweek');
+            tempAssignments.forEach((assignment, key) => {
+                const date = assignment.date;
+                const dayIndex = Math.floor((date - currentWeekStart) / (1000 * 60 * 60 * 24));
+                if (dayIndex >= 0 && dayIndex < 7) {
+                    const teamA = assignment.match.teamAID;
+                    const teamB = assignment.match.teamBID;
+                    if (
+                        match.teamAID === teamA || match.teamAID === teamB ||
+                        match.teamBID === teamA || match.teamBID === teamB
+                    ) {
+                        //console.log('deepshadow');
+                        box.className = 'match-box-sameweek'; // Teams match, highlight the box
+                    }
+                };
+                
+            });
+            
+            
+            box.draggable = true;
+            box.innerHTML = `${match.group}:<br>${match.teamAID} vs ${match.teamBID}`;
+            
+            box.addEventListener('dragstart', () => {
+                selectedMatch = match;
+                box.textContent = `${match.teamAID} vs ${match.teamBID}`;
+                box.classList.add('dragging');
+            });
+            
+            box.addEventListener('dragend', () => {
+                box.classList.remove('dragging');
+            });
+            
+            box.addEventListener('click', () => {
+                highlightAvailableDays(match);
+                console.log("clickedMatch", match);
+            });
+            return box;
+        }
+
+        function highlightAvailableDays(match) {
+            //console.log('Match available days:', match.availableDays); // Debug log
+            
+            document.querySelectorAll('.day-box').forEach((box, index) => {
+                box.classList.remove('available', 'unavailable');
+                if (index < 5) { // Only process weekdays
+                    const dayNumber = index + 1;
+                    // Convert availableDays to numbers if they're strings
+                    const availableDays = normalizeAvailableDays(match);
+                    //console.log('Checking day:', dayNumber, 'Available:', availableDays); // Debug log
+                    
+                    if (availableDays.includes(dayNumber)) {
+                        box.classList.add('available');
+                    } else {
+                        box.classList.add('unavailable');
+                    }
+                }
+            });
+        }
+
+        function renderUndatedMatchCount(){
+            const undatedMatchesCount = document.getElementById('matches-left');
+            const matches = fetchMatches();
+            let count = 0;
+            Object.values(matches).forEach(match => {
+                const key = `${match.id}`;
+                if (!match.date && !tempAssignments.has(key) && (match.teamAID !== match.teamBID || match.teamAID === null)){
+                    count++;
+                }
+            });
+            undatedMatchesCount.innerHTML = `<p>There are still ${count} matches unsorted</p>`;
+            //console.log('Undated match count rendered');
+        }
+
+        function matchNumberToChinese(num) {
+            const map = {
+                1: '一', 2: '二', 3: '三', 4: '四',
+                5: '五', 6: '六', 7: '七', 8: '八',
+                9: '九', 10: '十'
+            };
+            return map[num] ?? num; // Fallback if not in map
+        }
+
+        document.getElementById('prev-week').addEventListener('click', () => {
+            currentWeekStart.setDate(currentWeekStart.getDate() - 7);
+            firstRender = true;
+            selectedDayFilter = null;
+            updateWeekView();
+            updateWeekViewPhone();
+        });
+
+        document.getElementById('next-week').addEventListener('click', () => {
+            currentWeekStart.setDate(currentWeekStart.getDate() + 7);
+            firstRender = true;
+            selectedDayFilter = null;
+            updateWeekView();
+            updateWeekViewPhone();
+        });
+
+        function autoSortWeekMatches() {
+            displayAssignedMatches();
+            let addedCount = 0;
+            let madeProgress = true;
+
+            while (madeProgress) {
+                madeProgress = false;
+                const dayOptions = WEEKDAY_NUMBERS.map(dayNumber => {
+                    const assignedCount = getAssignmentsForDay(dayNumber).length;
+                    const remainingSlots = AUTO_SORT_MATCHES_PER_DAY - assignedCount;
+                    const candidates = remainingSlots > 0 ? getAutoSortCandidatesForDay(dayNumber) : [];
+                    return {
+                        dayNumber: dayNumber,
+                        assignedCount: assignedCount,
+                        remainingSlots: remainingSlots,
+                        candidates: candidates
+                    };
+                })
+                .filter(dayOption => dayOption.remainingSlots > 0 && dayOption.candidates.length > 0)
+                .sort((dayA, dayB) =>
+                    dayA.candidates.length - dayB.candidates.length ||
+                    dayA.assignedCount - dayB.assignedCount ||
+                    dayA.dayNumber - dayB.dayNumber
+                );
+
+                if (dayOptions.length === 0) break;
+
+                const nextDay = dayOptions[0];
+                const match = chooseAutoSortMatch(nextDay.dayNumber, nextDay.candidates);
+                if (!match) break;
+
+                addTemporaryAssignment(match, getWeekDate(nextDay.dayNumber), false);
+                addedCount++;
+                madeProgress = true;
+            }
+
+            selectedDayFilter = null;
+            updateWeekView();
+            renderUndatedMatchCount();
+            alert(`Auto sort added ${addedCount} matches.`);
+        }
+
+        document.getElementById('auto-sort').addEventListener('click', autoSortWeekMatches);
+
+        document.getElementById('save-assignments').addEventListener('click', () => {
+            const matches = fetchMatches();
+            
+            tempAssignments.forEach((assignment, key) => {
+                const matchIndex = matches.findIndex(m => 
+                    m.id === assignment.match.id
+                );
+                
+                if (matchIndex !== -1) {
+                    const matchDate = assignment.date;
+                    matches[matchIndex].date = matchDate.getFullYear() +
+                        '-' + String(matchDate.getMonth() + 1).padStart(2, '0') +
+                        '-' + String(matchDate.getDate()).padStart(2, '0');
+                    //log('savedMatchDate', matches[matchIndex].date);
+                    matches[matchIndex].locked = assignment.match.locked;
+                }
+            });
+            
+            saveMatches(matches);
+            tempAssignments.clear();
+            firstRender = true;
+            renderUndatedMatches();
+            updateWeekView();
+            updateWeekViewPhone();
+            renderUndatedMatchCount();
+            alert('Match assignments saved successfully!');
+        });
+
+        // Utility to get weekday in Chinese
+        const dayOfWeekZH = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];
+        const tierMap = {
+            'Tier1': '一級',
+            'Tier2': '二級',
+            'Tier3': '三級',
+            'Tier4': '四級',
+            'Newbi': '新生盃'
+        };
+        // Replace your fb-announcement listener with this:
+        document.getElementById('fb-announcement').addEventListener('click', () => {
+            let teams = fetchTeams();
+            let teamsNewbie = fetchNewbieTeams();
+            let teamsCustom = fetchCustomTeams();
+            let announcementText = "[臺大盃公告]\n**本週臺大盃賽程**\n";
+
+            function getAnnouncementTeamName(match, teamID) {
+                const teamSource = match.custom ? teamsCustom : match.newbie ? teamsNewbie : teams;
+                return teamSource[teamID]?.teamName || teamID;
+            }
+
+            // Build a map dateString -> array of assignments
+            const dayAssignments = {};
+            tempAssignments.forEach((assignment) => {
+                const date = assignment.date;
+                const dayIndex = Math.floor((date - currentWeekStart) / (1000 * 60 * 60 * 24));
+                const month = date.getMonth() + 1;
+                const day = date.getDate();
+                const weekday = dayOfWeekZH[date.getDay()];
+                const dateKey = `${month}/${day} ${weekday}`;
+                if (!dayAssignments[dateKey] && (dayIndex>=0 && dayIndex<7)) {
+                    dayAssignments[dateKey] = [];
+                }
+                if (dayIndex>=0 && dayIndex<7) {
+                    dayAssignments[dateKey].push(assignment);
+                }
+            });
+
+            // Sort each day's assignments and build text lines
+            Object.keys(dayAssignments).sort((a, b) => {
+                // Extract month and day from "M/D 星期X"
+                const [am, ad] = a.split(/[\/ ]/);
+                const [bm, bd] = b.split(/[\/ ]/);
+                // Use current year for sorting
+                const year = new Date().getFullYear();
+                const dateA = new Date(year, Number(am) - 1, Number(ad));
+                const dateB = new Date(year, Number(bm) - 1, Number(bd));
+                return dateA - dateB;
+            })
+            .forEach(dateKey => {
+                announcementText += `${dateKey}\n`;
+                dayAssignments[dateKey].forEach((assignment, index) => {
+                    const groupPart = assignment.match.group?.split('-')[0] || '';
+                    const prefix = groupPart.substring(0, 5);
+                    const matchTier = tierMap[prefix] ?? '未定級';
+                    // Use "場"+(index+1) as the match number
+                    if (groupPart === '假日') {
+                        announcementText += `${assignment.match.teamAID}\n`;
+                        return; // Skip further processing for "假日"
+                    }
+                    const teamAName = getAnnouncementTeamName(assignment.match, assignment.match.teamAID);
+                    const teamBName = getAnnouncementTeamName(assignment.match, assignment.match.teamBID);
+                    announcementText += `場${matchNumberToChinese(index + 1)} (${matchTier}) ${teamAName} vs ${teamBName}\n`;
+                });
+            });
+
+            // Show popup with text
+            document.getElementById('announcement-content').value = announcementText;
+            document.getElementById('announcement-popup-overlay').style.display = 'block';
+            document.getElementById('announcement-popup').style.display = 'block';
+        });
+
+        // Close popup when clicking outside
+        document.getElementById('announcement-popup-overlay').addEventListener('click', () => {
+            document.getElementById('announcement-popup-overlay').style.display = 'none';
+            document.getElementById('announcement-popup').style.display = 'none';
+        });
+
+        // Add drop zone for undated matches area
+        document.getElementById('undated-matches').addEventListener('dragover', e => {
+            e.preventDefault();
+        });
+
+        document.getElementById('undated-matches').addEventListener('drop', e => {
+            e.preventDefault();
+            if (selectedMatch) {
+                const matches = fetchMatches();
+                const match = matches.find(m => 
+                    selectedMatch.id === m.id
+                );
+                const key = `${selectedMatch.id}`;
+                tempAssignments.delete(key);
+
+                if (match) { // Only modify if match exists
+                    match.date = null;
+                    saveMatches(matches);
+                } else {
+                    console.warn('Match not found!');
+                }
+                displayAssignedMatches();
+                renderUndatedMatches();
+                renderUndatedMatchCount();
+            }
+        });
+
+        document.getElementById('reset-availability').addEventListener('click', () => {
+            const userConfirmed = confirm("Are you sure you want to reset all teams' availability? This will set all teams to be available on all weekdays.");
+            
+            if (userConfirmed) {
+                const teams = fetchTeams();
+                const teamsNewbie = fetchNewbieTeams();
+                const teamsCustom = fetchCustomTeams();
+                //console.log("Teams before reset:", teams); // Debug log
+                
+                Object.keys(teams).forEach(teamId => {
+                    teams[teamId].availableDays = null;
+                });
+                
+                Object.keys(teamsNewbie).forEach(teamId => {
+                    teamsNewbie[teamId].availableDays = null;
+                });
+
+                Object.keys(teamsCustom).forEach(teamId => {
+                    teamsCustom[teamId].availableDays = null;
+                });
+                //console.log("Teams after reset:", teams); // Debug log
+                
+                // Update matches with new available days
+                const matches = fetchMatches();
+                matches.forEach((match, index) => {
+                    matches[index].availableDays = [1, 2, 3, 4, 5];
+                });
+                
+                // Save both teams and matches
+                saveTeams(teams);
+                saveNewbieTeams(teamsNewbie);
+                saveCustomTeams(teamsCustom);
+                saveMatches(matches);
+                
+                alert('All teams availability has been reset successfully!');
+                
+                // Refresh the current view
+                updateCurrentTeam();
+                renderUndatedMatches();
+                renderUndatedMatchCount();
+            }
+        });
+
+        // Add this after your select element or in your initialization code
+        document.getElementById('sort-type').addEventListener('change', () => {
+            selectedDayFilter = null;
+            renderUndatedMatches();
+            renderUndatedMatchCount();
+        });
+
+        // Helper function to check if there are unsaved changes
+        function hasUnsavedChanges() {
+            for (let assignment of tempAssignments.values()) {
+                if (assignment.previouslyAssigned === false) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        let allowNavigation = false;
+
+        document.querySelector('.back-link').addEventListener('click', (e) => {
+            if (hasUnsavedChanges()) {
+                e.preventDefault();
+                const userConfirmed = confirm("Are you sure you want to leave this page? This will delete all unsaved progress.");
+                if (userConfirmed) {
+                    allowNavigation = true;
+                    window.location.href = '../../index.html';
+                }
+            }
+        });
+
+        // Add beforeunload event for browser close/refresh/navigation
+        window.addEventListener('beforeunload', (e) => {
+            if (!allowNavigation && hasUnsavedChanges()) {
+                e.preventDefault();
+                e.returnValue = 'You have unsaved changes. Are you sure you want to leave this page? This will delete all unsaved progress.';
+                return 'You have unsaved changes. Are you sure you want to leave this page? This will delete all unsaved progress.';
+            }
+        });
+
+        // Initial render
+        updateWeekView();
+        updateWeekViewPhone();
+        renderUndatedMatches();
+        renderUndatedMatchCount();
+
+
+        function copyAnnouncementText() {
+            const textToCopy = document.getElementById('announcement-content').value;
+
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                const fb = document.getElementById('copy-feedback');
+
+                // Reset timers if animation is already running
+                if (fb._fadeTimer) clearTimeout(fb._fadeTimer);
+                if (fb._hideTimer) clearTimeout(fb._hideTimer);
+
+                // Show "Copied!"
+                fb.style.display = 'inline-block';
+                fb.style.opacity = '1';
+                fb.style.transition = 'opacity 0.5s ease';
+
+                // Fade out after 1 second
+                fb._fadeTimer = setTimeout(() => {
+                    fb.style.opacity = '0';
+                    fb._hideTimer = setTimeout(() => {
+                        fb.style.display = 'none';
+                        fb._fadeTimer = fb._hideTimer = null;
+                    }, 500);
+                }, 1000);
+            })
+            .catch(err => {
+                console.error("Failed to copy: ", err);
+            });
+        }
+
+    </script>
+</body>
+</html>

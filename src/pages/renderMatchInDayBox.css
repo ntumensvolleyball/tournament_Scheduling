@@ -1,0 +1,458 @@
+/* For match selection Popup */
+.popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+    z-index: 1000;
+    max-width: 500px;
+    width: 90%;
+}
+
+.popup-holiday {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+    z-index: 10000;
+    max-width: 400px;
+    width: 90%;
+}
+
+.popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    display: none;
+}
+
+.popup-overlay-holiday {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    display: none;
+}
+
+.popup-title {
+    color: #2c3e50;
+    margin: 0 0 25px 0;
+    font-size: 1.5em;
+    text-align: center;
+}
+
+.close-popup-button {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 24px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
+.popup-content {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+    z-index: 1000;
+    max-width: 500px;
+    width: 90%;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* space between child elements */
+}
+
+/* Match container and inputs */
+.match-container {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    background: #f9f9f9;
+}
+
+.set-container {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.set-container input {
+    flex: 1 1 40px;
+    max-width: 60px;
+}
+
+.score-input {
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    text-align: center;
+    width: 40px;
+}
+
+.date-official-container {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+.official-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.official-search {
+    min-width: 150px;
+    flex: 1;
+    padding: 8px 10px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+}
+
+.official-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ccc;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+}
+
+.official-list div {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+}
+
+.official-list div:hover {
+    background-color: #e0e0e0;
+}
+
+.official-list div:last-child {
+    border-bottom: none;
+}
+
+/* Buttons */
+.btn-primary {
+    flex: 1;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    background: #4CAF50;
+    color: white;
+}
+
+.btn-secondary {
+    flex: 1;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    background: red;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #45a049;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+.btn-secondary:hover {
+    background: rgb(222, 1, 1);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.action-btn:hover {
+    background: #646464;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+/* Search container */
+.search-container {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+}
+
+.match-search {
+    padding: 8px 10px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    width: 200px;
+}
+
+/* Match lists */
+.scrollable-matches {
+    max-height: calc(8 * 40px);
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    padding: 10px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.match-item {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    cursor: pointer;
+    background: #ccc4ff;
+    transition: background 0.2s;
+}
+
+.match-item:hover {
+    background: #b0a3ff;
+}
+
+.match-item-separator {
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+    background: #fff;
+    font-weight: bold;
+    color: black;
+}
+
+.match-item-dated {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    background: #e2e2e2;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.match-item-dated:hover {
+    background: #b0a3ff;
+}
+
+.match-item-dated-newbie {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    background: #e2e2e2;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.match-item-dated-newbie:hover {
+    background: #4fa7d1;
+}
+
+/* Calendar styles */
+.calendar-day {
+    min-height: 200px;
+    background: white;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+.calendar-day.other-month {
+    background: #f5f5f5;
+    color: #999;
+}
+
+.calendar-date {
+    font-size: 0.8em;
+    color: black;
+    margin-bottom: 5px;
+    border-radius: 3px;
+    font-weight: bold;
+}
+
+.calendar-date:hover {
+    font-weight: bold;
+    color: #333;
+    background: #bcbcbc;
+}
+
+.calendar-matches {
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+}
+.calendar-match {
+    background: #ccc4ff;
+}
+.calendar-match:hover {
+    background: #b0a3ff;
+}   
+.calendar-match.newbie-cup {
+    background: #b3e6ff;
+    transition: background 0.2s;
+}
+.calendar-match.newbie-cup:hover {
+    background: #7fd0fa;
+}
+.calendar-match {
+    padding: 5px;
+    border-radius: 3px;
+    transition: background 0.2s;
+}
+
+.calendar-match:hover {
+    background: #b0a3ff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+.calendar-match.dragging {
+    opacity: 0.5;
+}
+
+.calendar-match.finished {
+    background: #888888;
+    color: black;
+}
+.calendar-match.finished:hover {
+    background: #777777;
+    color: black;
+}
+.calendar-match.unfinished {
+    background: #f39c12;
+}
+.calendar-match.unfinished:hover {
+    background: #e08e0b;
+}
+
+/* Labels */
+.group-label {
+    flex: 1 1 120px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.team-label {
+    flex: 1 1 120px;
+    text-align: center;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .popup {
+        width: 75%;
+        padding: 20px;
+    }
+    
+    .match-container {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .group-label, .team-label, .set-container, .date-official-container {
+        width: 100%;
+    }
+
+    .set-container {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .search-container {
+        width: 100%;
+        margin-top: 10px;
+        align-items: stretch;
+    }
+
+    .match-search {
+        width: 100%;
+    }
+    
+    .calendar-day {
+        min-height: 50px;
+        padding: 2px;
+        font-size: 0.9em;
+    }
+    
+    .calendar-date {
+        font-size: 0.9em;
+    }
+    
+    .calendar-match {
+        padding: 2px;
+        border-radius: 3px;
+    }
+    .calendar-matches {
+        gap: 2px;
+    }
+    .popup {
+        width: 75%;
+        padding: 20px;
+    }
+}
+
+/* Utility classes */
+.hidden {
+    display: none;
+}
+
+.popup-fade {
+    opacity: 0.5;
+}

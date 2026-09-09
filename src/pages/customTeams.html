@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../utility/volleyball.png" type="image/png">
+    <title>Add Custom Teams</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="base.css">
+    <link rel="stylesheet" href="custom.css">
+    <link rel="stylesheet" href="darkmode.css">
+</head>
+<body class="page table-page custom-page">
+    <script src="../utility/dataStorage.js"></script>
+    <script src="../utility/customTournament.js"></script>
+
+    <a href="../../index.html" class="back-link">
+        <i class="fas fa-arrow-left"></i>
+        Back to Main Page
+    </a>
+
+    <header class="page-header custom-panel">
+        <h1>Add Custom Teams</h1>
+    </header>
+
+    <main class="custom-layout">
+        <section class="custom-panel">
+            <form id="custom-team-form" class="custom-form-grid">
+                <input type="hidden" id="original-team-id">
+                <label class="custom-field">
+                    Team ID*
+                    <input id="team-id" type="text" required placeholder="e.g. CS-A">
+                </label>
+                <label class="custom-field">
+                    Team Name
+                    <input id="team-name" type="text" placeholder="Display name">
+                </label>
+                <label class="custom-field">
+                    Tags
+                    <textarea id="team-tags" rows="3" placeholder="Space, comma, or newline separated: girl groupa tier1"></textarea>
+                </label>
+                <div class="custom-field">
+                    Available Days
+                    <div id="available-days" class="checkbox-row"></div>
+                </div>
+                <div class="custom-actions">
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-save"></i>
+                        Save Team
+                    </button>
+                    <button type="button" id="clear-custom-team-form" class="btn-secondary">Clear</button>
+                </div>
+            </form>
+        </section>
+
+        <section class="custom-panel custom-table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Team ID</th>
+                        <th>Team Name</th>
+                        <th>Tags</th>
+                        <th>Available Days</th>
+                        <th>Games</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="custom-teams-body"></tbody>
+            </table>
+        </section>
+    </main>
+
+    <script>
+        initializeCustomTeamPage();
+    </script>
+</body>
+</html>

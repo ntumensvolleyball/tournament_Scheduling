@@ -1,0 +1,388 @@
+@media (prefers-color-scheme: dark) {
+    :root {
+        --color-page: #1a1a1a;
+        --color-surface: #2d2d2d;
+        --color-surface-muted: #242424;
+        --color-border: #555;
+        --color-border-strong: #666;
+        --color-text: #e0e0e0;
+        --color-text-muted: #ccc;
+        --shadow-sm: 0 2px 5px rgba(0,0,0,0.5);
+        --shadow-md: 0 4px 10px rgba(0,0,0,0.7);
+        --shadow-lg: 0 5px 20px rgba(0,0,0,0.9);
+    }
+
+    body {
+        background-color: #1a1a1a;
+        color: #e0e0e0;
+    }
+    .back-link {
+        background: #2d2d2d;
+        color: #e0e0e0;
+    }
+    .match-container {
+        background-color: #2d2d2d;
+        border-color: #555;
+        color: #e0e0e0;
+    }
+    .match, .champMatch{
+        background-color: #2d2d2d;
+    }
+    .calendar-day {
+        background: #3b3b3b;
+        border-color: #555;
+        color: #e0e0e0;
+    }
+    .calendar-day.other-month {
+        background: #1f1f1f;
+        color: #999;
+    }
+    .weekday-header {
+        background-color: #1f1f1f;
+        color: #e0e0e0;
+    }
+    .navigation {
+        background-color: #1a1a1a;
+        color: #e0e0e0;
+    }
+    .sticky-header {
+        background-color: #1a1a1a !important;
+        color: #e0e0e0;
+    }
+    .sticky-header.popup-fade {
+        background: rgba(0, 0, 0, 0.8) !important;
+    }
+    .sticky-header h2 {
+        color: #e0e0e0;
+    }
+    .popup {
+        background: #242424;
+        color: #e0e0e0;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.9);
+    }
+    .popup-title {
+        color: #e0e0e0;
+    }
+    .scrollable-matches {
+        background: #2d2d2d;
+        border-color: #555;
+        color: #e0e0e0;
+    }
+    .match-item {
+        border-bottom-color: #444;
+    }
+    .match-item:hover {
+        background: #3a3a3a;
+    }
+    .match-item-dated {
+        background: #3a3a3a;
+        border-bottom-color: #555;
+    }
+    .match-item-dated:hover {
+        background: #333;
+    }
+    
+    .match-item{
+        background: #845ab4;
+    }
+    .match-item:hover{
+        background: #6f3baa;
+    }
+    .match-item-separator {
+        background: #3a3a3a;
+        color: #e0e0e0;
+        border-bottom-color: #444;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.9);
+    }
+    .nav-link {
+        background: #2d2d2d;
+        color: #e0e0e0;
+    }
+    .nav-link:hover {
+        background: #3a3a3a;
+    }
+    .team-controls-menu {
+        background: #242424;
+        border-color: #555;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.9);
+    }
+    .team-controls-menu .navigation {
+        background: #242424;
+    }
+    .team-controls-menu .nav-link {
+        background: #2d2d2d;
+        color: #e0e0e0;
+        border-color: #555;
+    }
+    .team-controls-menu .nav-link:hover {
+        background: #3a3a3a;
+    }
+    .action-btn {
+        background: #2d2d2d;
+        color: #e0e0e0;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    }
+    .calendar-date {
+        color: #ccc;
+    }
+    .calendar-date:hover{
+        color: #ccc;
+        background: #4a4a4a;
+    }
+    .match-search {
+        background: #2d2d2d;
+        color: #e0e0e0;
+        border-color: #555;
+    }
+    .search-icon {
+        color: #ccc;
+    }
+    input, textarea {
+        background: #2d2d2d;
+        color: #e0e0e0;
+        border-color: #555;
+    }
+    .modal {
+        background: #242424;
+        color: #e0e0e0;
+    }
+    table {
+        background: #2d2d2d;
+    }
+    th {
+        background: #1f1f1f;
+        color: #e0e0e0;
+    }
+    td {
+        background: #2d2d2d;
+        color: #e0e0e0;
+        border-color: #555;
+    }
+    button {
+        background: #3a3a3a;
+        color: #e0e0e0;
+        border-color: #555;
+    }
+    button:hover {
+        background: #4a4a4a;
+    }
+    .download-link{
+        color: #e0e0e0;
+        background: #3a3a3a;
+        border-color: #555;
+    }
+    .finish-preliminary {
+        background: forestgreen;
+    }
+    .navigation h4 {
+        color: #cecece;
+    }
+
+    .match-list{
+        background: #2b2b2b;
+    }
+    .match-box {
+        background: #1b1b1b;
+    }
+    .match-box-sameweek {
+        background: #525252;
+    }
+    .calendar{
+        background: #2b2b2b;
+    }
+    .day-box{
+        background: #3b3b3b;
+    }
+    .past-assigned-match{
+        background: #1b1b1b;
+        color: #ccc;
+    }
+    .locked{
+        color: #ccc;
+    }
+    .team-selector {
+        background: #2d2d2d;
+        color: #e0e0e0;
+    }
+
+    .page-header,
+    .page-card,
+    .pay-card {
+        background: #1e1e1e;
+    }
+    .tier-form {
+        background: #2d2d2d;
+    }
+
+    .fixed-save-bar {
+        background: #1a1a1a;
+        color: #e0e0e0;
+    }
+    .assigned-match {
+        background: #525252;
+    }
+    .assigned-match:hover {
+        background: #626262;
+    }
+    .past-assigned-match:hover {
+        background: #333333;
+    }
+    .nav-btn-week{
+        background: #858585;
+    }
+    .popup-holiday {
+        background: #242424;
+    }
+    .popup-content {
+        background: #242424;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.9);
+    }
+    .scrolling-list {
+        background: #2d2d2d;
+    }
+    .input-container,
+    .instructions,
+    .instructions pre,
+    .adjustment-history,
+    .official-toolbar,
+    .tab-container,
+    .tab-button {
+        background: #2d2d2d;
+        color: #e0e0e0;
+        border-color: #555;
+    }
+    .instructions p,
+    .adjustment-note,
+    .adjustment-date,
+    .empty-adjustments {
+        color: #ccc;
+    }
+    .tab-button:hover {
+        background: #3a3a3a;
+    }
+    .tab-button.active {
+        background: #277f8f;
+        color: #fff;
+        border-bottom-color: #31acc2;
+    }
+    .adjustment-item {
+        border-bottom-color: #444;
+    }
+    .match-list-title-row,
+    .official-toolbar,
+    .pay-info,
+    .custom-panel,
+    .custom-team-card,
+    .custom-bracket-match,
+    .custom-match-preview {
+        color: #e0e0e0;
+    }
+    .pay-input,
+    .match-date-input,
+    .announcement-content,
+    .custom-field input,
+    .custom-field textarea,
+    .custom-field select {
+        background: #2d2d2d;
+        color: #e0e0e0;
+        border-color: #555;
+    }
+    .tag-chip {
+        background: #1f3a6d;
+        color: #dfe8ff;
+    }
+    .checkbox-pill,
+    .filter-option,
+    .custom-stage,
+    .team-slot {
+        background: #242424;
+        color: #e0e0e0;
+        border-color: #555;
+    }
+    .team-slot.is-filled,
+    .robin-team {
+        background: #234d2a;
+        color: #d4edda;
+        border-color: #2f6d38;
+    }
+    .input-container {
+        box-shadow: 0 2px 10px rgba(0,0,0,0.9);
+    }
+    /* Lines connecting matches in the bracket */
+    .round:not(:first-child) .match::before {
+        background: rgb(204, 204, 204);
+    }
+    .champMatch::before{
+        background: rgb(204, 204, 204);
+    }
+    /* Horizontal Line */
+    .match::after {
+        background: rgb(204, 204, 204);
+    }
+    
+    /* Vertical Line */
+    .vertical-line {
+        background: rgb(204, 204, 204);
+    }
+    .inbetween-vertical-line {
+        background-color: rgb(204, 204, 204);
+    }
+    .line-color{
+        background: rgb(204, 204, 204);
+    }
+
+    /* Color for the calendar match box.
+        This value defines the color used by the calendar's match box UI.
+        Order matters — the sequence determines priority/appearance and must not be rearranged. */
+    .calendar-matches { 
+        background: #3b3b3b;
+    }
+    .calendar-match {
+        background: #6f3baa;
+    }
+    .calendar-match:hover {
+        background: #845ab4;
+    }
+    .newbie-cup {
+        background: #276baf;
+    }
+    .newbie-cup:hover {
+        background: #0b62b9;
+    }
+    .newbie-cup.finished {
+        background: #666666;
+        color: #cecece;
+    }
+    .newbie-cup.finished:hover {
+        background: #555555;
+        color: #cecece;
+    }
+    .calendar-match.newbie-cup {
+        background: #276baf;
+    }
+    .calendar-match.newbie-cup:hover {
+        background: #0b62b9;
+    }
+    .calendar-match.newbie-cup.finished {
+        background: #666666;
+        color: #cecece;
+    }
+    .calendar-match.newbie-cup.finished:hover {
+         background: #0b62b9;
+    }
+    .finished {
+        background: #666666;
+        color: #cecece;
+    }
+    .finished:hover {
+        background: #555555;
+        color: #cecece;
+    }
+    .unfinished {
+        background: #ff9d00;
+    }
+    .unfinished:hover {
+        background: #e08900;
+    }
+    /* End calendar match box colors */
+}

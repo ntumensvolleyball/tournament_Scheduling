@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../utility/volleyball.png" type="image/png">
+    <title>Input Playing Groups</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="base.css">
+    <link rel="stylesheet" href="inputNoobCupTeams.css">
+    <link rel="stylesheet" href="darkmode.css">
+</head>
+<body class="page page--centered team-input-page">
+    <script src = '../utility/dataStorage.js'></script>
+    <a href="../../index.html" class="back-link">
+        <i class="fas fa-arrow-left"></i>
+        Back to Main Page
+    </a>
+    <h1>Input Playing Groups</h1>
+    <div class="form-container">
+        <div class="tier-form">
+            <h3>新生盃</h3>
+            <label for="Tier5-input">Enter Team Names</label>
+            <textarea id="Tier5-input" rows="6"></textarea>
+            <div class="checkbox-wrapper">
+                <input type="checkbox" id="Tier5-random" name="Tier5-random" value="true">
+                <label for="Tier5-random">隨機分組</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="button-container">
+        <button id="submit-button" class="action-button">
+            <i class="fas fa-save"></i>
+            儲存
+        </button>
+        <button id="download-json" class="action-button">
+            <i class="fas fa-download"></i>
+            下載隊伍資訊
+        </button>
+        <button id="delete-all-data" class="action-button">
+            <i class="fas fa-trash"></i>
+            刪除所有資訊
+        </button>
+    </div>
+
+    <script>
+        class Team {
+            constructor(teamID, games = [], preliminaryScore = 0, preliminaryGroup = null) {
+                this.teamID = teamID;
+                this.teamName = "";
+                this.games = games; // List of Game IDs
+                this.preliminaryScore = preliminaryScore;
+                this.preliminaryGroup = preliminaryGroup;
+                this.availableDays = null;
+                this.availableNights = null;
+                this.teamName = teamID;
+            }
+        }
+    
+        // 隨機排列隊伍名稱
+        function shuffleTeams(teams) {
+            for (let i = teams.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [teams[i], teams[j]] = [teams[j], teams[i]];
+            }
+            console.log(teams);
+            return teams;
+        }
+    
+        // 載入儲存的隊伍資料
+        function loadTeamData() {
+            // Load saved team data
+            const savedData = fetchTeamData();
+            // Only extract the value of Tier5
+            const textarea = document.getElementById('Tier5-input');
+            if (textarea && savedData['Tier5-input'] !== undefined) {
+                textarea.value = savedData['Tier5-input'];
+            }
+
+            const checkbox = document.getElementById(`Tier5-random`);
+            if (checkbox) {
+                checkbox.checked = false;
+            }
+        }
+    
+    
+        // save team data for visual in text box
+        function saveVisualTeamData() {
+
+            const teamData = fetchTeamData();
+            const nameCount = {};
+            const textarea = document.getElementById(`Tier5-input`);
+            const checkbox = document.getElementById(`Tier5-random`);
+            let teams = textarea.value.split('\n');
+            let count = 0;
+
+            // count number of teams in each group
+            for(let i = 0; i < teams.length; i++){
+                if(teams[i] !== ''){
+                    count++;
+                }
+            }
+            // remove empty lines
+            teams = teams.filter(line => line.trim() !== '');
+                
+            // Handle repeated team names
+            teams = teams.map(team => {
+                const trimmedTeam = team.trim();
+                
+                // Initialize if undefined
+                if (nameCount[trimmedTeam] === undefined) {
+                    nameCount[trimmedTeam] = 0;
+                    console.log(`First occurrence of ${trimmedTeam}:`, {...nameCount});
+                    return trimmedTeam;
+                }
+                // Increment existing count
+                nameCount[trimmedTeam] += 1;
+                const letter = String.fromCharCode(65 + nameCount[trimmedTeam]);
+                console.log(`Found duplicate ${trimmedTeam}, count now:`, nameCount[trimmedTeam], 'letter:', letter);
+                return `${trimmedTeam}${letter}`;
+            });
+            // Log final state after processing
+            console.log('Final nameCount:', {...nameCount});
+            // randomize teams
+            if (checkbox && checkbox.checked) {
+                console.log('start randomize teams');
+                teams = shuffleTeams(teams);
+            }
+            
+            teamData[`Tier5-input`] = teams.join('\n');
+
+            // Check if games have started
+            const hasGamesStarted = fetchNewbieStarted() === 'true';
+            if (hasGamesStarted) {
+                const confirmEdit = confirm('比賽已經開始，確認是否要編輯分組資訊？這將導致比賽結果被清除！');
+                if (!confirmEdit) {
+                    return;
+                }
+            }
+            markNewbieStarted('false');
+            saveTeamData(teamData);
+            alert('分組資訊已儲存！');
+        }
+
+
+        // save team data as json
+        function processAndSaveTeamData() {
+            const teamData = fetchTeamData();
+            const teamInstances = {}; // 用於儲存所有 Team 物件
+            console.log(teamData)
+            const groupID = "Tier5"; // 生成組別名稱，例如 Tier1-A
+            const teams = teamData['Tier5-input'].split('\n');
+            // 建立每個隊伍的 Team 實例
+            teams.forEach(teamID => {
+                teamInstances[teamID] = new Team(teamID, [], 0, groupID);
+            });
+            
+            console.log(teamInstances)
+            // 儲存
+            saveNewbieTeams(teamInstances);
+        }
+
+
+        // 綁定按鈕事件
+        document.getElementById('submit-button').addEventListener('click', () => {
+            // We're in tier input mode - use existing submit functionality
+            console.log('regular input');
+            saveVisualTeamData();
+            markNewbieStarted(false);
+            processAndSaveTeamData();
+            loadTeamData();
+        });
+
+        document.getElementById('download-json').addEventListener('click', () => {
+            downloadJSON(fetchTeams(), 'teams.json');
+        });
+
+        document.getElementById('delete-all-data').addEventListener('click', () => {
+            // Create a confirmation dialog
+            const userConfirmed = confirm("Are you sure you want to delete all data? This action cannot be undone.");
+            
+            if (userConfirmed) {
+                // Clear all data
+                wipeEverything();
+                alert("All data has been deleted successfully.");
+                location.reload()
+            } else {
+                alert("Data deletion canceled.");
+            }
+        });
+
+        // 頁面載入時載入資料
+        window.onload = loadTeamData();
+
+        function processTeamNames(teams) {
+            const nameCount = {};
+            let hasRepeats = true;
+            let processedTeams = [...teams];
+
+            while (hasRepeats) {
+                hasRepeats = false;
+                const currentNames = new Set();
+                
+                processedTeams = processedTeams.map(team => {
+                    const trimmedTeam = team.trim();
+                    
+                    // If this name was already seen in this iteration
+                    if (currentNames.has(trimmedTeam)) {
+                        hasRepeats = true;
+                        nameCount[trimmedTeam] = (nameCount[trimmedTeam] || 0) + 1;
+                        const letter = String.fromCharCode(65 + nameCount[trimmedTeam]);
+                        console.log(`Found duplicate ${trimmedTeam}, adding letter:`, letter);
+                        return `${trimmedTeam}${letter}`;
+                    }
+                    
+                    // First time seeing this name in this iteration
+                    currentNames.add(trimmedTeam);
+                    return trimmedTeam;
+                });
+                
+                console.log('After iteration:', processedTeams);
+            }
+            
+            return processedTeams;
+        }
+
+
+    </script>
+</body>
+</html>

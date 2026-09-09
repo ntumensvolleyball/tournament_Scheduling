@@ -1,0 +1,276 @@
+.bracket-page #bracketContainer {
+    transform: scale(0.6);
+    transform-origin: 0 0;
+    display: block;
+    position: relative;
+}
+
+.bracket-page #bracketContainer .popup,
+.bracket-page #bracketContainer .popup-overlay,
+.bracket-page #bracketContainer .popup-overlay.hidden,
+.bracket-page #bracketContainer .popup.hidden {
+    position: fixed !important;
+}
+
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 20px;
+}
+
+.download-link {
+    padding: 10px 20px;
+    position: sticky;
+    top: 120px;
+    cursor: pointer;
+    margin-left: auto;
+}
+
+.bracket-container {
+    padding: 40px;
+    display: flex;
+    gap: 80px;
+    align-items: flex-start;
+}
+
+.tier {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.round {
+    align-items: center;
+    position: relative;
+}
+
+.round:not(:first-child) .match::before,
+.champMatch::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: 100%;
+    width: 40px;
+    height: 2px;
+    background: black;
+}
+
+.match::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 100%;
+    width: 40px;
+    height: 2px;
+    background: black;
+}
+
+.vertical-line {
+    content: "";
+    position: absolute;
+    left: 180px;
+    bottom: 30px;
+    width: 2px;
+    height: 165%;
+    background: black;
+}
+
+.match,
+.champMatch {
+    width: 160px;
+    height: 40px;
+    background: #ddd;
+    padding: 12px;
+    margin: 40px 0;
+    min-height: 60px;
+    font-size: 25px;
+    white-space: pre-line;
+    overflow-wrap: break-word;
+    border-radius: 5px;
+    position: relative;
+    text-align: center;
+}
+
+.match:hover,
+.champMatch:hover {
+    background: #b7b7b7;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.match-winner {
+    color: #4fa7d1;
+    font-weight: bold;
+}
+
+.custom-robin-container .champMatch {
+    margin-bottom: 24px !important;
+}
+
+.custom-robin-container .champMatch::before {
+    display: none;
+}
+
+.bracket-page .btn-secondary {
+    background: red;
+    color: #fff;
+}
+
+.bracket-page .btn-secondary:hover {
+    background: rgb(222, 1, 1);
+}
+
+.group-label,
+.team-label {
+    flex: 1 1 120px;
+    text-align: center;
+}
+
+.set-container {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.set-container input {
+    flex: 1 1 40px;
+    max-width: 60px;
+}
+
+.date-official-container {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+.official-search {
+    min-width: 150px;
+    flex: 1;
+}
+
+.delete-match {
+    margin-top: 10px;
+    padding: 8px 12px;
+    background-color: #cf4d4d;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.bracket-page .popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 30px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    z-index: 10001;
+    max-width: 500px;
+    width: 90%;
+}
+
+.bracket-page .popup-overlay {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    display: none;
+}
+
+.line-color {
+    background: black;
+}
+
+.tab-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: nowrap;
+    border-bottom: 2px solid var(--color-border);
+    width: 100%;
+    overflow-x: auto;
+}
+
+.tab-button {
+    padding: 12px 24px;
+    border: none;
+    background: #f0f0f0;
+    cursor: pointer;
+    font-size: 32px;
+    font-weight: 500;
+    color: #333;
+    border-radius: 8px 8px 0 0;
+    transition: all var(--motion-fast);
+    margin-bottom: -2px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.tab-button:hover {
+    background: #e0e0e0;
+}
+
+.tab-button.active {
+    background: #42bed3;
+    color: #fff;
+    border-bottom: 3px solid #31acc2;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+@media (max-width: 768px) {
+    .match-container {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .group-label,
+    .team-label,
+    .set-container,
+    .date-official-container {
+        width: 100%;
+    }
+
+    .set-container {
+        justify-content: center;
+    }
+
+    .delete-match {
+        align-self: center;
+        width: 100%;
+    }
+
+    .bracket-page .popup {
+        width: 80%;
+        padding: 20px;
+    }
+
+    .match .champMatch {
+        font-size: 12px;
+    }
+
+    .tab-container {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .tab-button {
+        font-size: 14px;
+        padding: 10px 16px;
+    }
+}

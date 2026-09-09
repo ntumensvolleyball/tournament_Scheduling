@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="volleyball.png" type="image/png">
+    <title>Tournament Bracket</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="base.css">
+    <link rel="stylesheet" href="visual.css">
+    <link rel="stylesheet" href="popup.css">
+    <link rel="stylesheet" href="darkmode.css">
+</head>
+<body class="page page--flush bracket-page">
+    <a href="../../index.html" class="back-link">
+        <i class="fas fa-arrow-left"></i>
+        Back to Main Page
+    </a>
+    <script src = '../utility/dataStorage.js'></script>
+    <script src = '../utility/Matchinfo.js'></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <div class="topbar">
+        <a id="downloadPdfBtn" class="download-link">
+            <i class="fas fa-file-pdf"></i> 
+            <span class="nav-text">Download Bracket as PDF</span>
+        </a>
+    </div>
+    <h1>Tournament Bracket</h1>
+    <div id="bracketContainer" class="bracket-container"></div>
+    <!-- Popup structure -->
+    <div class="popup-overlay hidden" id="popup-overlay"></div>
+    <div class="popup hidden" id="popup">
+        <div class="popup-content" id="popup-content"></div>
+    </div>
+
+    <script>
+        const Height = 40;
+        document.addEventListener("DOMContentLoaded", () => {
+            renderCalendar();
+
+            // PDF download logic for the whole page
+            document.getElementById('downloadPdfBtn').addEventListener('click', function() {
+                // Use the body or a main wrapper for the whole page
+                const element = document.body;
+                const opt = {
+                    margin:       0.2,
+                    filename:     'tournament_fullpage.pdf',
+                    image:        { type: 'jpeg', quality: 0.98 },
+                    html2canvas:  { scale: 2, useCORS: true },
+                    jsPDF:        { unit: 'in', format: 'a1', orientation: 'portrait' } // A1 for extra large
+                };
+                html2pdf().set(opt).from(element).save();
+            });
+        });
+        function renderCalendar(){
+            const bracketsData = fetchBrackets();
+            const customTournaments = fetchCustomTournaments();
+            const matches = fetchMatches();
+
+            const container = document.getElementById("bracketContainer");
+            container.innerHTML = ""; // Clear previous content
+            
+            // Get all unique tier prefixes
+            const tierOrder = ['NewbieCup', 'Tier1', 'Tier2', 'Tier3', 'Tier4'];
+            const activeTiers = tierOrder.filter(tierPrefix => 
+                Object.keys(bracketsData).some(key => key.startsWith(tierPrefix))
+            );
+            const customTournamentEntries = Object.entries(customTournaments);
+
+            // Create tab container
+            const tabContainer = document.createElement("div");
+            tabContainer.classList.add("tab-container");
+
+            function activateTab(tabId) {
+                document.querySelectorAll(".tab-button").forEach(btn => btn.classList.remove("active"));
+                document.querySelectorAll(".tab-content").forEach(content => content.classList.remove("active"));
+
+                document.querySelector(`[data-tab-id="${tabId}"]`)?.classList.add("active");
+                document.getElementById(tabId)?.classList.add("active");
+            }
+
+            function createTabButton(label, tabId, isActive = false) {
+                const button = document.createElement("button");
+                button.classList.add("tab-button");
+                if (isActive) button.classList.add("active");
+                button.textContent = label;
+                button.dataset.tabId = tabId;
+                button.addEventListener("click", function() {
+                    activateTab(tabId);
+                });
+                return button;
+            }
+
+            function getMatchById(matchId, customOnly = false) {
+                return matches.find(match =>
+                    String(match.id) === String(matchId) && (!customOnly || match.custom)
+                );
+            }
+
+            function getTeamLabel(match, teamID) {
+                if (!teamID) return "";
+                return match.custom ? String(teamID) : String(teamID).substring(0, 2);
+            }
+
+            function renderMatchDiv(roundDiv, match, matchIndex, mar, top) {
+                const teamAName = getTeamLabel(match, match.teamAID);
+                const teamBName = getTeamLabel(match, match.teamBID);
+                const matchDiv = document.createElement("div");
+        
+                if(match.nextMatch !== null){
+                    matchDiv.classList.add("match");
+                    matchDiv.style.marginBottom = `${mar}px`;
+                } else {
+                    matchDiv.classList.add("champMatch")
+                    matchDiv.style.marginBottom = `100px`
+                }
+
+                if (matchIndex === 0) {
+                    matchDiv.style.marginTop = `${top}px`;
+                }
+
+                const teamAHtml = (match.winner && match.winner === match.teamAID) ? `<span class="match-winner">${teamAName}</span>` : teamAName;
+                const teamBHtml = (match.winner && match.winner === match.teamBID) ? `<span class="match-winner">${teamBName}</span>` : teamBName;
+                const vsHtml = `${teamAHtml} vs ${teamBHtml}`;
+
+                if (match.teamAID === match.teamBID && match.teamAID !== null) {
+                    matchDiv.innerHTML = teamAName;
+                } else {
+                    matchDiv.innerHTML = vsHtml;
+                }
+
+                showMatchinfo(matchDiv, match);
+                roundDiv.appendChild(matchDiv);
+
+                // create connecting lines
+                if (matchIndex % 2 === 1 && match.nextMatch !== null) {
+                    const verticalLine = document.createElement("div");
+                    verticalLine.style.position = "absolute";
+                    verticalLine.style.left = 223 + "px";
+                    verticalLine.style.bottom = Height + "px"; 
+                    verticalLine.style.width = "2px";
+                    verticalLine.style.height = `${mar + 2 * Height+ 6}px`;
+                    verticalLine.classList.add("line-color");
+                    matchDiv.appendChild(verticalLine);
+                }
+            }
+
+            function renderEliminationBracket(tabContent, titleText, bracket, customOnly = false) {
+                const title = document.createElement("h2");
+                title.textContent = titleText;
+                tabContent.appendChild(title);
+
+                const bracketContainer = document.createElement("div");
+                bracketContainer.classList.add("bracket-container");
+                let mar = 40;
+                let top = 0;
+
+                bracket.roundMatchIds.forEach((round, roundIndex) => {
+                    const roundDiv = document.createElement("div");
+                    roundDiv.classList.add("round");
+                    const roundTitle = document.createElement("h3");
+                    roundTitle.textContent = `Round ${roundIndex + 1}`;
+                    roundDiv.appendChild(roundTitle);
+
+                    round.forEach((matchId, matchIndex) => {
+                        const match = getMatchById(matchId, customOnly);
+                        if (match !== undefined) {
+                            renderMatchDiv(roundDiv, match, matchIndex, mar, top);
+                        }
+                    });
+
+                    mar = mar * 2 + Height * 2 + 3;
+                    top = mar / 2;
+                    bracketContainer.appendChild(roundDiv);
+                });
+
+                tabContent.appendChild(bracketContainer);
+            }
+
+            function renderRobinTournament(tabContent, tournament) {
+                const title = document.createElement("h2");
+                title.textContent = tournament.name;
+                tabContent.appendChild(title);
+
+                const robinContainer = document.createElement("div");
+                robinContainer.classList.add("bracket-container", "custom-robin-container");
+
+                const roundDiv = document.createElement("div");
+                roundDiv.classList.add("round");
+                const roundTitle = document.createElement("h3");
+                roundTitle.textContent = "Robin Matches";
+                roundDiv.appendChild(roundTitle);
+
+                tournament.matchIds.forEach((matchId, matchIndex) => {
+                    const match = getMatchById(matchId, true);
+                    if (match !== undefined) {
+                        renderMatchDiv(roundDiv, match, matchIndex, 20, 0);
+                    }
+                });
+
+                robinContainer.appendChild(roundDiv);
+                tabContent.appendChild(robinContainer);
+            }
+
+            const hasCustomTournaments = customTournamentEntries.length > 0;
+            const firstActiveTabId = activeTiers.length > 0 ? `tab-${activeTiers[0]}` : "tab-custom";
+
+            // Create tab buttons for each tier
+            activeTiers.forEach((tier) => {
+                tabContainer.appendChild(createTabButton(tier, `tab-${tier}`, `tab-${tier}` === firstActiveTabId));
+            });
+
+            if (hasCustomTournaments) {
+                tabContainer.appendChild(createTabButton("Custom", "tab-custom", firstActiveTabId === "tab-custom"));
+            }
+
+            container.appendChild(tabContainer);
+
+            // Create content for each tier
+            activeTiers.forEach((tier) => {
+                const tabContent = document.createElement("div");
+                tabContent.id = `tab-${tier}`;
+                tabContent.classList.add("tab-content");
+                if (`tab-${tier}` === firstActiveTabId) tabContent.classList.add("active");
+
+                // Get all brackets for this tier
+                const tiersForThisTier = Object.entries(bracketsData).filter(([key]) => key.startsWith(tier));
+
+                tiersForThisTier.forEach(([tierName, bracket]) => {
+                    renderEliminationBracket(tabContent, tierName, bracket);
+                });
+
+                container.appendChild(tabContent);
+            });
+
+            if (hasCustomTournaments) {
+                const customTabContent = document.createElement("div");
+                customTabContent.id = "tab-custom";
+                customTabContent.classList.add("tab-content");
+                if (firstActiveTabId === "tab-custom") customTabContent.classList.add("active");
+
+                customTournamentEntries.forEach(([, tournament]) => {
+                    if (tournament.type === "elimination" && Array.isArray(tournament.roundMatchIds)) {
+                        renderEliminationBracket(customTabContent, tournament.name, tournament, true);
+                    } else if (tournament.type === "robin" && Array.isArray(tournament.matchIds)) {
+                        renderRobinTournament(customTabContent, tournament);
+                    }
+                });
+
+                container.appendChild(customTabContent);
+            }
+        }
+    </script>
+</body>
+</html>

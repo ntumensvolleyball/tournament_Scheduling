@@ -1,0 +1,141 @@
+.official-profiles-page table {
+    margin-bottom: 90px;
+}
+
+.official-profiles-page .back-link {
+    margin-bottom: 20px;
+}
+
+.official-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.pay-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--color-surface);
+    padding: 10px 15px;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 20px;
+    gap: 10px;
+}
+
+.pay-left {
+    display: flex;
+    align-items: center;
+}
+
+.pay-icon {
+    margin-right: 10px;
+    color: #3498db;
+}
+
+.pay-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.pay-label {
+    font-weight: 600;
+    color: #3498db;
+    font-size: 13px;
+    margin-bottom: 4px;
+}
+
+.pay-input {
+    width: 100px;
+    padding: 8px 10px;
+    border-radius: var(--radius-md);
+    border: 1px solid #e6e9ee;
+    text-align: center;
+    font-weight: 600;
+    color: #3498db;
+}
+
+.adjustment-modal {
+    min-width: 400px;
+}
+
+.adjustment-form {
+    margin-bottom: 15px;
+    display: flex;
+    gap: 10px;
+    flex-direction: column;
+}
+
+.adjustment-form input {
+    padding: 8px;
+}
+
+.adjustment-history {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid var(--color-border);
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.modal-actions {
+    text-align: right;
+}
+
+.cashout-button {
+    background-color: #e74c3c;
+    margin-left: 10px;
+}
+
+.adjustment-button {
+    background-color: #6c757d;
+}
+
+.empty-adjustments {
+    color: #888;
+    text-align: center;
+}
+
+.adjustment-amount {
+    font-weight: bold;
+}
+
+.adjustment-amount.positive {
+    color: green;
+}
+
+.adjustment-amount.negative {
+    color: red;
+}
+
+.adjustment-note {
+    color: #555;
+    margin-left: 10px;
+}
+
+.adjustment-date {
+    font-size: 0.8em;
+    color: #999;
+}
+
+.delete-adjustment {
+    background: #ff4444;
+    color: white;
+    padding: 2px 6px;
+    font-size: 0.8em;
+}
+
+.adjustment-list {
+    list-style: none;
+    padding: 0;
+}
+
+.adjustment-item {
+    border-bottom: 1px solid #eee;
+    padding: 8px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}

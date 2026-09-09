@@ -1,0 +1,21 @@
+.team-profile-page .clickable-header {
+    cursor: pointer;
+    transition: background-color var(--motion-fast), box-shadow var(--motion-fast);
+}
+
+.team-profile-page .clickable-header:hover {
+    background-color: lightblue;
+    box-shadow: 0 0 10px rgba(0,0,0,0.2);
+}
+
+.team-profile-page #batch-input-overlay,
+.team-profile-page #batch-input-modal {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .team-profile-page .action-btn,
+    .team-profile-page .back-link {
+        width: 100%;
+    }
+}
