@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="volleyball.png" type="image/png">
+    <link rel="icon" href="../utility/volleyball.png" type="image/png">
     <title>Tournament Bracket</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="base.css">
@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="darkmode.css">
 </head>
 <body class="page page--flush bracket-page">
-    <a href="../../index.html" class="back-link">
+    <a href="../../admin.html" class="back-link">
         <i class="fas fa-arrow-left"></i>
         Back to Main Page
     </a>
@@ -53,19 +53,13 @@
             });
         });
         function renderCalendar(){
-            const bracketsData = fetchBrackets();
-            const customTournaments = fetchCustomTournaments();
+            const tournaments = fetchTournaments();
             const matches = fetchMatches();
 
             const container = document.getElementById("bracketContainer");
             container.innerHTML = ""; // Clear previous content
             
-            // Get all unique tier prefixes
-            const tierOrder = ['NewbieCup', 'Tier1', 'Tier2', 'Tier3', 'Tier4'];
-            const activeTiers = tierOrder.filter(tierPrefix => 
-                Object.keys(bracketsData).some(key => key.startsWith(tierPrefix))
-            );
-            const customTournamentEntries = Object.entries(customTournaments);
+            const tournamentEntries = Object.entries(tournaments);
 
             // Create tab container
             const tabContainer = document.createElement("div");
@@ -91,15 +85,15 @@
                 return button;
             }
 
-            function getMatchById(matchId, customOnly = false) {
+            function getMatchById(matchId) {
                 return matches.find(match =>
-                    String(match.id) === String(matchId) && (!customOnly || match.custom)
+                    String(match.id) === String(matchId)
                 );
             }
 
             function getTeamLabel(match, teamID) {
                 if (!teamID) return "";
-                return match.custom ? String(teamID) : String(teamID).substring(0, 2);
+                return String(teamID);
             }
 
             function renderMatchDiv(roundDiv, match, matchIndex, mar, top) {
@@ -145,7 +139,7 @@
                 }
             }
 
-            function renderEliminationBracket(tabContent, titleText, bracket, customOnly = false) {
+            function renderEliminationBracket(tabContent, titleText, bracket) {
                 const title = document.createElement("h2");
                 title.textContent = titleText;
                 tabContent.appendChild(title);
@@ -163,7 +157,7 @@
                     roundDiv.appendChild(roundTitle);
 
                     round.forEach((matchId, matchIndex) => {
-                        const match = getMatchById(matchId, customOnly);
+                        const match = getMatchById(matchId);
                         if (match !== undefined) {
                             renderMatchDiv(roundDiv, match, matchIndex, mar, top);
                         }
@@ -183,7 +177,7 @@
                 tabContent.appendChild(title);
 
                 const robinContainer = document.createElement("div");
-                robinContainer.classList.add("bracket-container", "custom-robin-container");
+                robinContainer.classList.add("bracket-container", "robin-container");
 
                 const roundDiv = document.createElement("div");
                 roundDiv.classList.add("round");
@@ -192,7 +186,7 @@
                 roundDiv.appendChild(roundTitle);
 
                 tournament.matchIds.forEach((matchId, matchIndex) => {
-                    const match = getMatchById(matchId, true);
+                    const match = getMatchById(matchId);
                     if (match !== undefined) {
                         renderMatchDiv(roundDiv, match, matchIndex, 20, 0);
                     }
@@ -202,53 +196,17 @@
                 tabContent.appendChild(robinContainer);
             }
 
-            const hasCustomTournaments = customTournamentEntries.length > 0;
-            const firstActiveTabId = activeTiers.length > 0 ? `tab-${activeTiers[0]}` : "tab-custom";
-
-            // Create tab buttons for each tier
-            activeTiers.forEach((tier) => {
-                tabContainer.appendChild(createTabButton(tier, `tab-${tier}`, `tab-${tier}` === firstActiveTabId));
+            tournamentEntries.forEach(([, tournament], index) => {
+                const tabID = `tab-${tournament.id}`;
+                tabContainer.appendChild(createTabButton(tournament.name, tabID, index === 0));
+                const content = document.createElement("div");
+                content.id = tabID;
+                content.className = "tab-content" + (index === 0 ? " active" : "");
+                if (tournament.type === "elimination") renderEliminationBracket(content, tournament.name, tournament);
+                else if (tournament.type === "robin") renderRobinTournament(content, tournament);
+                container.appendChild(content);
             });
-
-            if (hasCustomTournaments) {
-                tabContainer.appendChild(createTabButton("Custom", "tab-custom", firstActiveTabId === "tab-custom"));
-            }
-
-            container.appendChild(tabContainer);
-
-            // Create content for each tier
-            activeTiers.forEach((tier) => {
-                const tabContent = document.createElement("div");
-                tabContent.id = `tab-${tier}`;
-                tabContent.classList.add("tab-content");
-                if (`tab-${tier}` === firstActiveTabId) tabContent.classList.add("active");
-
-                // Get all brackets for this tier
-                const tiersForThisTier = Object.entries(bracketsData).filter(([key]) => key.startsWith(tier));
-
-                tiersForThisTier.forEach(([tierName, bracket]) => {
-                    renderEliminationBracket(tabContent, tierName, bracket);
-                });
-
-                container.appendChild(tabContent);
-            });
-
-            if (hasCustomTournaments) {
-                const customTabContent = document.createElement("div");
-                customTabContent.id = "tab-custom";
-                customTabContent.classList.add("tab-content");
-                if (firstActiveTabId === "tab-custom") customTabContent.classList.add("active");
-
-                customTournamentEntries.forEach(([, tournament]) => {
-                    if (tournament.type === "elimination" && Array.isArray(tournament.roundMatchIds)) {
-                        renderEliminationBracket(customTabContent, tournament.name, tournament, true);
-                    } else if (tournament.type === "robin" && Array.isArray(tournament.matchIds)) {
-                        renderRobinTournament(customTabContent, tournament);
-                    }
-                });
-
-                container.appendChild(customTabContent);
-            }
+            container.prepend(tabContainer);
         }
     </script>
 </body>

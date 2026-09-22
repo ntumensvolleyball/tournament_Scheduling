@@ -1,4 +1,4 @@
-const CUSTOM_WEEKDAYS = [
+const WEEKDAYS = [
     { value: 1, label: "Mon" },
     { value: 2, label: "Tue" },
     { value: 3, label: "Wed" },
@@ -6,46 +6,46 @@ const CUSTOM_WEEKDAYS = [
     { value: 5, label: "Fri" }
 ];
 
-const CUSTOM_TOURNAMENT_PREVIEW_NAME = "Custom Tournament";
-const CUSTOM_BRACKET_SIZES = [2, 4, 8, 16, 32, 64];
-const CUSTOM_TAG_SEPARATOR = /[,，\s]+/;
+const TOURNAMENT_PREVIEW_NAME = "Tournament";
+const BRACKET_SIZES = [2, 4, 8, 16, 32, 64];
+const TAG_SEPARATOR = /[,，\s]+/;
 
-function normalizeCustomText(value) {
+function normalizeText(value) {
     return String(value || "").trim();
 }
 
-function normalizeCustomTag(tag) {
-    return normalizeCustomText(tag).replace(/\s+/g, " ");
+function normalizeTag(tag) {
+    return normalizeText(tag).replace(/\s+/g, " ");
 }
 
-function parseCustomTags(value) {
+function parseTags(value) {
     return [...new Set(String(value || "")
-        .split(CUSTOM_TAG_SEPARATOR)
-        .map(normalizeCustomTag)
+        .split(TAG_SEPARATOR)
+        .map(normalizeTag)
         .filter(Boolean))];
 }
 
-function getSelectedCustomDays(container) {
+function getSelectedDays(container) {
     return Array.from(container.querySelectorAll("input[type='checkbox']:checked"))
         .map(input => Number(input.value))
         .sort((a, b) => a - b);
 }
 
-function formatCustomDays(days) {
-    return (Array.isArray(days) && days.length > 0 ? days : CUSTOM_WEEKDAYS.map(day => day.value)).join(",");
+function formatDays(days) {
+    return (Array.isArray(days) && days.length > 0 ? days : WEEKDAYS.map(day => day.value)).join(",");
 }
 
-function getCustomTeamList() {
-    return Object.values(fetchCustomTeams()).sort((teamA, teamB) =>
+function getTeamList() {
+    return Object.values(fetchTeams()).sort((teamA, teamB) =>
         teamA.teamID.localeCompare(teamB.teamID)
     );
 }
 
-function getCustomTeam(teamID) {
-    return fetchCustomTeams()[teamID] || null;
+function getTeam(teamID) {
+    return fetchTeams()[teamID] || null;
 }
 
-function createCustomTeam(teamID, teamName, tags, availableDays, games = []) {
+function createTeam(teamID, teamName, tags, availableDays, games = []) {
     return {
         teamID,
         games,
@@ -55,17 +55,16 @@ function createCustomTeam(teamID, teamName, tags, availableDays, games = []) {
     };
 }
 
-function saveCustomTeam(team) {
-    const teams = fetchCustomTeams();
+function saveTeam(team) {
+    const teams = fetchTeams();
     teams[team.teamID] = team;
-    saveCustomTeams(teams);
+    saveTeams(teams);
 }
 
-function renameCustomTeamReferences(originalTeamID, newTeamID) {
+function renameTeamReferences(originalTeamID, newTeamID) {
     const matches = fetchMatches();
     let updated = false;
     matches.forEach(match => {
-        if (!match.custom) return;
         if (match.teamAID === originalTeamID) {
             match.teamAID = newTeamID;
             updated = true;
@@ -75,48 +74,50 @@ function renameCustomTeamReferences(originalTeamID, newTeamID) {
             updated = true;
         }
     });
+    const tournaments = fetchTournaments();
+    Object.values(tournaments).forEach(tournament => {
+        if (tournament.teamIds) tournament.teamIds = tournament.teamIds.map(id => id === originalTeamID ? newTeamID : id);
+    });
+    matches.forEach(match => {
+        if (match.winner === originalTeamID) match.winner = newTeamID;
+        if (match.loser === originalTeamID) match.loser = newTeamID;
+    });
+    saveTournaments(tournaments);
     if (updated) saveMatches(matches);
 }
 
-function deleteCustomTeam(teamID) {
-    const teams = fetchCustomTeams();
+function deleteTeam(teamID) {
+    const teams = fetchTeams();
     delete teams[teamID];
-    saveCustomTeams(teams);
+    saveTeams(teams);
 }
 
-function getAllCustomTags() {
+function getAllTags() {
     const tags = new Set();
-    getCustomTeamList().forEach(team => {
+    getTeamList().forEach(team => {
         (team.tags || []).forEach(tag => tags.add(tag));
     });
     return [...tags].sort((a, b) => a.localeCompare(b));
 }
 
-function customTeamHasWinnerTag(team, winnerTag) {
-    const normalizedWinnerTag = normalizeCustomTag(winnerTag).toLowerCase();
+function teamHasWinnerTag(team, winnerTag) {
+    const normalizedWinnerTag = normalizeTag(winnerTag).toLowerCase();
     return (team.tags || []).some(tag => {
-        const normalizedTag = normalizeCustomTag(tag).toLowerCase();
+        const normalizedTag = normalizeTag(tag).toLowerCase();
         return normalizedTag === normalizedWinnerTag ||
             normalizedTag === `winner:${normalizedWinnerTag}` ||
             normalizedTag === `winner of:${normalizedWinnerTag}`;
     });
 }
 
-function customTeamMatchesFilters(team, filters) {
-    const teamTags = new Set((team.tags || []).map(tag => normalizeCustomTag(tag).toLowerCase()));
-    const includesTags = filters.includeTags.every(tag => teamTags.has(normalizeCustomTag(tag).toLowerCase()));
-    const includesWinnerTags = filters.winnerTags.every(tag => customTeamHasWinnerTag(team, tag));
+function teamMatchesFilters(team, filters) {
+    const teamTags = new Set((team.tags || []).map(tag => normalizeTag(tag).toLowerCase()));
+    const includesTags = filters.includeTags.every(tag => teamTags.has(normalizeTag(tag).toLowerCase()));
+    const includesWinnerTags = filters.winnerTags.every(tag => teamHasWinnerTag(team, tag));
     return includesTags && includesWinnerTags;
 }
 
-function calculateCustomMatchAvailableDays(teamAID, teamBID) {
-    const teams = fetchCustomTeams();
-    const teamADays = teams[teamAID]?.availableDays || CUSTOM_WEEKDAYS.map(day => day.value);
-    const teamBDays = teams[teamBID]?.availableDays || CUSTOM_WEEKDAYS.map(day => day.value);
-    return teamADays.filter(day => teamBDays.includes(day));
-}
-
-function createCustomMatchRecord(id, teamAID, teamBID, group, tournamentID, round = null) {
+function createMatchRecord(id, teamAID, teamBID, group, tournamentID, round = null) {
     return {
         id,
         teamAID,
@@ -129,28 +130,25 @@ function createCustomMatchRecord(id, teamAID, teamBID, group, tournamentID, roun
         status: false,
         nextMatch: null,
         loserNextMatch: null,
-        preliminary: false,
-        newbie: false,
         tournamentID,
         group,
         round,
-        availableDays: teamAID && teamBID ? calculateCustomMatchAvailableDays(teamAID, teamBID) : [],
+        availableDays: teamAID && teamBID ? calculateMatchAvailableDays(teamAID, teamBID) : [],
         official: "",
         date: null,
-        locked: false,
-        custom: true
+        locked: false
     };
 }
 
-function getNextCustomMatchIDAllocator() {
+function getNextMatchIDAllocator() {
     const highestExistingMatchID = fetchMatches().reduce((highestID, match) =>
         Math.max(highestID, Number(match.id) || 0), 0);
     let nextID = Math.max(Number(fetchGameIDCounter()) || 0, highestExistingMatchID) + 1;
     return () => nextID++;
 }
 
-function attachCustomGamesToTeams(matches) {
-    const teams = fetchCustomTeams();
+function attachGamesToTeams(matches) {
+    const teams = fetchTeams();
     matches.forEach(match => {
         [match.teamAID, match.teamBID].forEach(teamID => {
             if (!teamID || !teams[teamID]) return;
@@ -158,14 +156,14 @@ function attachCustomGamesToTeams(matches) {
             if (!teams[teamID].games.includes(match.id)) teams[teamID].games.push(match.id);
         });
     });
-    saveCustomTeams(teams);
+    saveTeams(teams);
 }
 
-function getCustomTournamentID(name) {
-    return normalizeCustomText(name)
+function getTournamentID(name) {
+    return normalizeText(name)
         .toLowerCase()
         .replace(/[^a-z0-9\u4e00-\u9fff]+/gi, "-")
-        .replace(/^-+|-+$/g, "") || `custom-${Date.now()}`;
+        .replace(/^-+|-+$/g, "") || `${Date.now()}`;
 }
 
 function isPowerOfTwo(value) {
@@ -227,10 +225,10 @@ function buildEliminationTournament(stage) {
         throw new Error("Fill every first-round bracket slot before saving.");
     }
 
-    const tournamentID = getCustomTournamentID(stage.name);
+    const tournamentID = getTournamentID(stage.name);
     const rounds = [];
     const matches = [];
-    const nextMatchID = getNextCustomMatchIDAllocator();
+    const nextMatchID = getNextMatchIDAllocator();
 
     for (let roundIndex = 1; roundIndex <= stage.rounds; roundIndex++) {
         const matchCount = stage.size / Math.pow(2, roundIndex);
@@ -239,12 +237,12 @@ function buildEliminationTournament(stage) {
             const slotIndex = matchIndex * 2;
             const teamAID = roundIndex === 1 ? stage.slots[slotIndex] : null;
             const teamBID = roundIndex === 1 ? stage.slots[slotIndex + 1] : null;
-            const match = createCustomMatchRecord(nextMatchID(), teamAID, teamBID, `${stage.name}-Round${roundIndex}`, tournamentID, roundIndex);
+            const match = createMatchRecord(nextMatchID(), teamAID, teamBID, `${stage.name}-Round${roundIndex}`, tournamentID, roundIndex);
             roundMatches.push(match);
             matches.push(match);
         }
         if (stage.rounds > 1 && roundIndex === stage.rounds) {
-            const placementMatch = createCustomMatchRecord(nextMatchID(), null, null, `${stage.name}-Round${roundIndex}`, tournamentID, roundIndex);
+            const placementMatch = createMatchRecord(nextMatchID(), null, null, `${stage.name}-Round${roundIndex}`, tournamentID, roundIndex);
             roundMatches.push(placementMatch);
             matches.push(placementMatch);
         }
@@ -254,10 +252,12 @@ function buildEliminationTournament(stage) {
     for (let roundIndex = 0; roundIndex < rounds.length - 1; roundIndex++) {
         rounds[roundIndex].forEach((match, matchIndex) => {
             match.nextMatch = rounds[roundIndex + 1][Math.floor(matchIndex / 2)].id;
+            match.nextMatchSlot = matchIndex % 2 === 0 ? "teamAID" : "teamBID";
         });
         if (roundIndex === rounds.length - 2 && rounds[roundIndex + 1][1]) {
-            rounds[roundIndex].forEach(match => {
+            rounds[roundIndex].forEach((match, matchIndex) => {
                 match.loserNextMatch = rounds[roundIndex + 1][1].id;
+                match.loserNextMatchSlot = matchIndex % 2 === 0 ? "teamAID" : "teamBID";
             });
         }
     }
@@ -283,11 +283,11 @@ function buildRobinTournament(stage) {
         throw new Error(`Add exactly ${stage.teamCount} teams before saving this robin round.`);
     }
 
-    const tournamentID = getCustomTournamentID(stage.name);
-    const nextMatchID = getNextCustomMatchIDAllocator();
+    const tournamentID = getTournamentID(stage.name);
+    const nextMatchID = getNextMatchIDAllocator();
     const pairs = createRoundRobinPairs(stage.teams, stage.repeatCount);
     const matches = pairs.map(pair =>
-        createCustomMatchRecord(nextMatchID(), pair.teamAID, pair.teamBID, `${stage.name}-Robin${pair.round}`, tournamentID, pair.round)
+        createMatchRecord(nextMatchID(), pair.teamAID, pair.teamBID, `${stage.name}-Robin${pair.round}`, tournamentID, pair.round)
     );
 
     return {
@@ -306,27 +306,27 @@ function buildRobinTournament(stage) {
     };
 }
 
-function saveBuiltCustomTournament(buildResult) {
+function saveBuiltTournament(buildResult) {
     const existingMatches = fetchMatches();
-    const tournaments = fetchCustomTournaments();
+    const tournaments = fetchTournaments();
     if (tournaments[buildResult.tournamentID]) {
-        throw new Error("A custom tournament with this name already exists. Use a different name.");
+        throw new Error("A tournament with this name already exists. Use a different name.");
     }
     saveMatches([...existingMatches, ...buildResult.matches]);
     saveGameIDCounter(Math.max(...buildResult.matches.map(match => match.id), Number(fetchGameIDCounter())));
     tournaments[buildResult.tournamentID] = buildResult.tournament;
-    saveCustomTournaments(tournaments);
-    attachCustomGamesToTeams(buildResult.matches);
+    saveTournaments(tournaments);
+    attachGamesToTeams(buildResult.matches);
 }
 
-function initializeCustomTeamPage() {
-    const form = document.getElementById("custom-team-form");
+function initializeTeamPage() {
+    const form = document.getElementById("team-form");
     const dayContainer = document.getElementById("available-days");
-    const tableBody = document.getElementById("custom-teams-body");
-    const clearButton = document.getElementById("clear-custom-team-form");
+    const tableBody = document.getElementById("teams-body");
+    const clearButton = document.getElementById("clear-team-form");
 
     function renderDayCheckboxes() {
-        dayContainer.innerHTML = CUSTOM_WEEKDAYS.map(day => `
+        dayContainer.innerHTML = WEEKDAYS.map(day => `
             <label class="checkbox-pill">
                 <input type="checkbox" value="${day.value}" checked>
                 ${day.label}
@@ -345,26 +345,26 @@ function initializeCustomTeamPage() {
     }
 
     function editTeam(teamID) {
-        const team = getCustomTeam(teamID);
+        const team = getTeam(teamID);
         if (!team) return;
         document.getElementById("original-team-id").value = team.teamID;
         document.getElementById("team-id").value = team.teamID;
         document.getElementById("team-name").value = team.teamName || team.teamID;
         document.getElementById("team-tags").value = (team.tags || []).join(", ");
-        const availableDays = team.availableDays || CUSTOM_WEEKDAYS.map(day => day.value);
+        const availableDays = team.availableDays || WEEKDAYS.map(day => day.value);
         dayContainer.querySelectorAll("input[type='checkbox']").forEach(input => {
             input.checked = availableDays.includes(Number(input.value));
         });
     }
 
     function renderTeams() {
-        const teams = getCustomTeamList();
+        const teams = getTeamList();
         tableBody.innerHTML = teams.map(team => `
             <tr>
                 <td>${team.teamID}</td>
                 <td>${team.teamName || team.teamID}</td>
                 <td>${(team.tags || []).map(tag => `<span class="tag-chip">${tag}</span>`).join("")}</td>
-                <td>${formatCustomDays(team.availableDays)}</td>
+                <td>${formatDays(team.availableDays)}</td>
                 <td>${(team.games || []).length}</td>
                 <td>
                     <button class="edit-btn" data-action="edit" data-team-id="${team.teamID}">Edit</button>
@@ -376,11 +376,11 @@ function initializeCustomTeamPage() {
 
     form.addEventListener("submit", event => {
         event.preventDefault();
-        const originalTeamID = normalizeCustomText(document.getElementById("original-team-id").value);
-        const teamID = normalizeCustomText(document.getElementById("team-id").value);
-        const teamName = normalizeCustomText(document.getElementById("team-name").value);
-        const tags = parseCustomTags(document.getElementById("team-tags").value);
-        const availableDays = getSelectedCustomDays(dayContainer);
+        const originalTeamID = normalizeText(document.getElementById("original-team-id").value);
+        const teamID = normalizeText(document.getElementById("team-id").value);
+        const teamName = normalizeText(document.getElementById("team-name").value);
+        const tags = parseTags(document.getElementById("team-tags").value);
+        const availableDays = getSelectedDays(dayContainer);
         if (!teamID) {
             alert("Team ID is required.");
             return;
@@ -390,7 +390,7 @@ function initializeCustomTeamPage() {
             return;
         }
 
-        const teams = fetchCustomTeams();
+        const teams = fetchTeams();
         const existingGames = teams[originalTeamID]?.games || teams[teamID]?.games || [];
         if (originalTeamID && originalTeamID !== teamID) {
             if (teams[teamID]) {
@@ -399,16 +399,17 @@ function initializeCustomTeamPage() {
             }
             const updatedTeams = { ...teams };
             delete updatedTeams[originalTeamID];
-            updatedTeams[teamID] = createCustomTeam(teamID, teamName, tags, availableDays, existingGames);
-            saveCustomTeams(updatedTeams);
-            renameCustomTeamReferences(originalTeamID, teamID);
+            updatedTeams[teamID] = createTeam(teamID, teamName, tags, availableDays, existingGames);
+            saveTeams(updatedTeams);
+            renameTeamReferences(originalTeamID, teamID);
         } else if (!originalTeamID && teams[teamID]) {
             alert("A team with this Team ID already exists. Click Edit to update it.");
             return;
         } else {
-            saveCustomTeam(createCustomTeam(teamID, teamName, tags, availableDays, existingGames));
+            saveTeam(createTeam(teamID, teamName, tags, availableDays, existingGames));
         }
 
+        saveMatches(fetchMatches());
         resetForm({ keepTags: true });
         renderTeams();
     });
@@ -420,12 +421,12 @@ function initializeCustomTeamPage() {
         if (button.dataset.action === "edit") {
             editTeam(teamID);
         } else if (button.dataset.action === "delete" && confirm(`Delete ${teamID}?`)) {
-            const team = getCustomTeam(teamID);
+            const team = getTeam(teamID);
             if ((team?.games || []).length > 0) {
-                alert("This team has saved custom games and cannot be deleted.");
+                alert("This team has saved games and cannot be deleted.");
                 return;
             }
-            deleteCustomTeam(teamID);
+            deleteTeam(teamID);
             renderTeams();
         }
     });
@@ -435,7 +436,7 @@ function initializeCustomTeamPage() {
     renderTeams();
 }
 
-function initializeCustomTournamentPage() {
+function initializeTournamentPage() {
     const state = {
         includeTags: new Set(),
         winnerTags: new Set(),
@@ -443,7 +444,7 @@ function initializeCustomTournamentPage() {
     };
 
     const elements = {
-        teamList: document.getElementById("custom-team-list"),
+        teamList: document.getElementById("team-list"),
         includeSearch: document.getElementById("tag-filter-search"),
         winnerSearch: document.getElementById("winner-filter-search"),
         includeOptions: document.getElementById("tag-filter-options"),
@@ -455,8 +456,8 @@ function initializeCustomTournamentPage() {
         robinRepeats: document.getElementById("robin-repeats"),
         clearStage: document.getElementById("clear-stage"),
         save: document.getElementById("save-game-creation"),
-        stage: document.getElementById("custom-stage"),
-        status: document.getElementById("custom-builder-status")
+        stage: document.getElementById("stage"),
+        status: document.getElementById("builder-status")
     };
 
     function getFilters() {
@@ -467,8 +468,8 @@ function initializeCustomTournamentPage() {
     }
 
     function renderTagOptions(container, searchValue, selectedSet) {
-        const normalizedSearch = normalizeCustomText(searchValue).toLowerCase();
-        const tags = getAllCustomTags().filter(tag => tag.toLowerCase().includes(normalizedSearch));
+        const normalizedSearch = normalizeText(searchValue).toLowerCase();
+        const tags = getAllTags().filter(tag => tag.toLowerCase().includes(normalizedSearch));
         container.innerHTML = tags.map(tag => `
             <label class="filter-option">
                 <input type="checkbox" value="${tag}" ${selectedSet.has(tag) ? "checked" : ""}>
@@ -489,11 +490,11 @@ function initializeCustomTournamentPage() {
             : state.staged?.type === "elimination"
                 ? new Set(state.staged.slots.filter(Boolean))
                 : new Set();
-        const teams = getCustomTeamList()
+        const teams = getTeamList()
             .filter(team => !stagedTeams.has(team.teamID))
-            .filter(team => customTeamMatchesFilters(team, filters));
+            .filter(team => teamMatchesFilters(team, filters));
         elements.teamList.innerHTML = teams.map(team => `
-            <div class="custom-team-card" draggable="true" data-team-id="${team.teamID}">
+            <div class="team-card" draggable="true" data-team-id="${team.teamID}">
                 <strong>${team.teamID}</strong>
                 <span>${team.teamName || team.teamID}</span>
                 <div>${(team.tags || []).map(tag => `<span class="tag-chip">${tag}</span>`).join("")}</div>
@@ -508,7 +509,7 @@ function initializeCustomTournamentPage() {
             const slotAIndex = matchIndex * 2;
             const slotBIndex = slotAIndex + 1;
             return `
-                <div class="custom-bracket-match">
+                <div class="bracket-match">
                     ${renderTeamSlot(slotAIndex, stage.slots[slotAIndex])}
                     ${renderTeamSlot(slotBIndex, stage.slots[slotBIndex])}
                 </div>
@@ -519,16 +520,16 @@ function initializeCustomTournamentPage() {
             const roundNumber = roundOffset + 2;
             const matchCount = stage.size / Math.pow(2, roundNumber);
             const placementMatch = roundNumber === stage.rounds ? `
-                <div class="custom-bracket-match is-placeholder">
+                <div class="bracket-match is-placeholder">
                     <div class="team-slot">Semifinal loser</div>
                     <div class="team-slot">Semifinal loser</div>
                 </div>
             ` : "";
             return `
-                <div class="custom-round">
+                <div class="round">
                     <h3>Round ${roundNumber}</h3>
                     ${Array.from({ length: matchCount }, () => `
-                        <div class="custom-bracket-match is-placeholder">
+                        <div class="bracket-match is-placeholder">
                             <div class="team-slot">Winner</div>
                             <div class="team-slot">Winner</div>
                         </div>
@@ -539,7 +540,7 @@ function initializeCustomTournamentPage() {
         }).join("");
 
         elements.stage.innerHTML = `
-            <div class="custom-round">
+            <div class="round">
                 <h3>Round 1</h3>
                 ${firstRound}
             </div>
@@ -565,7 +566,7 @@ function initializeCustomTournamentPage() {
             </div>
             <div class="robin-pairs">
                 <h3>Generated Matches (${pairs.length})</h3>
-                ${pairs.map(pair => `<div class="custom-match-preview">Round ${pair.round}: ${pair.teamAID} vs ${pair.teamBID}</div>`).join("")}
+                ${pairs.map(pair => `<div class="match-preview">Round ${pair.round}: ${pair.teamAID} vs ${pair.teamBID}</div>`).join("")}
             </div>
         `;
     }
@@ -597,7 +598,7 @@ function initializeCustomTournamentPage() {
     }
 
     function getPreviewTournamentName() {
-        return normalizeCustomText(elements.name.value) || CUSTOM_TOURNAMENT_PREVIEW_NAME;
+        return normalizeText(elements.name.value) || TOURNAMENT_PREVIEW_NAME;
     }
 
     function buildStageFromControls({ preserveAssignments = true, showAlerts = false } = {}) {
@@ -648,27 +649,23 @@ function initializeCustomTournamentPage() {
     }
 
     function saveStage() {
-        const name = normalizeCustomText(elements.name.value);
+        const name = normalizeText(elements.name.value);
         if (!name) {
-            alert("Tournament name is required.");
+            setStatus("Not saved: enter a tournament name.");
+            elements.name.focus();
             return;
         }
-        if (!syncStageFromControls({ showAlerts: true })) return;
-        state.staged.name = name;
-        if (!state.staged) {
-            alert("Create a tournament stage first.");
-            return;
-        }
+        if (!syncStageFromControls()) return;
         try {
             const buildResult = state.staged.type === "elimination"
                 ? buildEliminationTournament(state.staged)
                 : buildRobinTournament(state.staged);
-            saveBuiltCustomTournament(buildResult);
+            saveBuiltTournament(buildResult);
             state.staged = null;
-            setStatus(`Saved ${buildResult.matches.length} custom games.`);
             refresh();
+            setStatus(`Saved tournament "${name}" with ${buildResult.matches.length} matches. View it on the Brackets or Matches List page.`);
         } catch (error) {
-            alert(error.message);
+            setStatus(`Not saved: ${error.message}`);
         }
     }
 
@@ -693,7 +690,7 @@ function initializeCustomTournamentPage() {
     }
 
     elements.teamList.addEventListener("dragstart", event => {
-        const card = event.target.closest(".custom-team-card");
+        const card = event.target.closest(".team-card");
         if (!card) return;
         event.dataTransfer.setData("text/plain", card.dataset.teamId);
     });
@@ -746,7 +743,7 @@ function initializeCustomTournamentPage() {
     elements.clearStage.addEventListener("click", clearStageAssignments);
     elements.save.addEventListener("click", saveStage);
 
-    CUSTOM_BRACKET_SIZES.forEach(size => {
+    BRACKET_SIZES.forEach(size => {
         const option = document.createElement("option");
         option.value = size;
         option.textContent = `${size} teams`;

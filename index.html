@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="../utility/volleyball.png" type="image/png">
-    <title>NTU Cup System</title>
+    <link rel="icon" href="src/utility/volleyball.png" type="image/png">
+    <title>Tournament System</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -174,22 +174,13 @@
             cursor: pointer;
             transition: background 0.2s;
         }
-        .match-item-dated-newbie{
-            padding: 10px;
-            border-bottom: 1px solid #ddd;
-            background: #e2e2e2;
-;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
+
 
         .match-item-dated:hover {
             background: #b0a3ff;
         }
 
-        .match-item-dated-newbie:hover {
-            background: #4fa7d1;
-        }
+
         .popup-buttons {
             display: flex;
             gap: 12px;
@@ -471,12 +462,8 @@
             .nav-text{
                 display: none;
             }
-            .ntucup{
-                display: none;
-            }
-            .newbiecup{
-                display: none;
-            }
+
+
             .weekday-header{
                 padding: 4px;
             }
@@ -518,16 +505,9 @@
         }
 
 
-        .newbie-cup{
-            background: #b3e6ff;
-        }
-        .newbie-cup{
-            background: #b3e6ff;
-            transition: background 0.2s;
-        }
-        .newbie-cup:hover {
-            background: #7fd0fa;
-        }
+
+
+
         .navigation h4 {
             font-size: 0.6em;
             margin: 0 15px 0 0;
@@ -552,18 +532,14 @@
 </head>
 <body>
     <script>
-        (function(){
-            try {
-                if(!localStorage.getItem('teamData')) {
-                    window.location.href = 'src/pages/inputPlayGroups.html';
-                }
-            } catch(e) { console.error('Redirect check failed', e); }
-        })();
+        if (!new URLSearchParams(window.location.search).has('admin')) {
+            window.location.replace('public.html');
+        }
     </script>
     <script src = 'src/utility/dataStorage.js'></script>
     <script src = 'src/utility/Matchinfo.js'></script>
     <script src = 'src/utility/renderMatchInDayBox.js'></script>
-    <h1>NTU Cup Admin</h1>
+    <h1>Tournament Admin</h1>
     <div class = "navigation">
         <div style="display: flex; gap: 15px;">
             <a href="src/pages/sortMatchings.html" class="nav-link phone-hidden">
@@ -582,43 +558,25 @@
                 <i class="fas fa-user-group"></i>
                 <span class="nav-text">Official Profiles</span>
             </a>
+            <a href="admin.html" class="nav-link">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <span class="nav-text">Admin & Publish</span>
+            </a>
             <details class="team-controls">
                 <summary class="nav-link">
                     <i class="fas fa-users-gear"></i>
                     <span class="nav-text">Team controls</span>
                 </summary>
                 <div class="team-controls-menu">
-                    <div class="navigation ntucup" id="ntucup-area">
-                        <h4>NTU CUP</h4>
-                        <a href="src/pages/inputPlayGroups.html" class="nav-link">
-                            <i class="fas fa-users"></i>
-                            Input Playgroups
-                        </a>
-                        <a href="src/pages/teamProfiles_v2.html" class="nav-link">
-                            <i class="fas fa-user-group"></i>
-                            Team Profiles
-                        </a>
-                    </div>
-                    <div class="navigation newbiecup" id="newbiecup-area">
-                        <h4>Newbie Cup</h4>
-                        <a href="src/pages/inputNoobCupTeams.html" class="nav-link">
-                            <i class="fas fa-users"></i>
-                            Input Newbie Teams
-                        </a>
-                        <a href="src/pages/teamProfiles_Newbie.html" class="nav-link">
-                            <i class="fas fa-user-group"></i>
-                            Newbie Team Profiles
-                        </a>
-                    </div>
-                    <div class="navigation customteam" id="customteam-area">
-                        <h4>Custom Team</h4>
-                        <a href="src/pages/customTeams.html" class="nav-link">
+                    <div class="navigation team" id="team-area">
+                        <h4> Team</h4>
+                        <a href="src/pages/teams.html" class="nav-link">
                             <i class="fas fa-user-plus"></i>
-                            Add Custom Team
+                            Add Team
                         </a>
-                        <a href="src/pages/customTournament.html" class="nav-link">
+                        <a href="src/pages/tournament.html" class="nav-link">
                             <i class="fas fa-diagram-project"></i>
-                            Create Custom Tournament
+                            Create Tournament
                         </a>
                     </div>
                 </div>
@@ -770,16 +728,12 @@
         });
 
         document.getElementById('export-btn').addEventListener('click', function() {
-            const data = {};
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                data[key] = localStorage.getItem(key);
-            }
+            const data = exportTournamentBackup();
             const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'ntu-cup-backup.json';
+            a.download = 'tournament-backup.json';
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -805,9 +759,7 @@
                 reader.onload = function(event) {
                     try {
                         const data = JSON.parse(event.target.result);
-                        for (const key in data) {
-                            localStorage.setItem(key, data[key]);
-                        }
+                        importTournamentBackup(data);
                         alert('Data imported!');
                         location.reload();
                     } catch (err) {

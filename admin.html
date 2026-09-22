@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Organizer dashboard · NTUVBCUP</title>
+    <link rel="stylesheet" href="src/pages/portal.css">
+</head>
+<body>
+<header class="site-header">
+    <div><p class="eyebrow">NTUVBCUP</p><h1>Organizer dashboard</h1></div>
+    <div class="header-actions"><span id="account" class="muted"></span><button id="logout" class="secondary compact">Sign out</button></div>
+</header>
+<main class="portal-grid">
+    <section class="panel">
+        <h2>Build and update</h2>
+        <p>Your existing tools remain the private working area. Changes stay in this browser until you publish.</p>
+        <div class="button-row">
+            <a class="button" href="index.html?admin=1">Open scheduler</a>
+            <a class="button secondary" href="src/pages/matchList.html">Enter scores</a>
+            <a class="button secondary" href="src/pages/visual.html">Preview bracket</a>
+        </div>
+    </section>
+    <section class="panel">
+        <h2>Publish current browser data</h2>
+        <label>Public name<input id="publication-name" maxlength="120" placeholder="2026 NTU Volleyball Cup"></label>
+        <label>URL slug<input id="publication-slug" maxlength="64" placeholder="2026-ntu-cup"></label>
+        <label class="check"><input id="is-public" type="checkbox" checked> Visible to everyone</label>
+        <button id="publish">Publish current teams, schedule, bracket, and scores</button>
+        <p id="publish-status" class="status" role="status"></p>
+    </section>
+    <section class="panel span-two">
+        <h2>Your published tournaments</h2>
+        <div id="publications" class="publication-list"><p class="muted">Loading…</p></div>
+    </section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="src/config.js"></script>
+<script src="src/utility/dataStorage.js"></script>
+<script src="src/utility/cloudData.js"></script>
+<script>
+    const status = document.getElementById("publish-status");
+    function addPublication(item) {
+        const row = document.createElement("div"); row.className = "publication-row";
+        const text = document.createElement("div");
+        const title = document.createElement("strong"); title.textContent = item.name;
+        const meta = document.createElement("small"); meta.textContent = `${item.slug} · ${item.is_public ? "Public" : "Private"} · ${new Date(item.updated_at).toLocaleString()}`;
+        text.append(title, meta);
+        const actions = document.createElement("div"); actions.className = "button-row";
+        const load = document.createElement("button"); load.className = "secondary compact"; load.textContent = "Load draft";
+        load.addEventListener("click", async () => {
+            if (!confirm("Replace this browser's current tournament draft with the published version? Export a backup first if needed.")) return;
+            await NTUCUPCloud.loadOwnedPublication(item.slug); location.href = "index.html?admin=1";
+        });
+        actions.append(load);
+        if (item.is_public) {
+            const view = document.createElement("a"); view.className = "button secondary compact"; view.href = `public.html?t=${encodeURIComponent(item.slug)}`; view.textContent = "View public"; actions.append(view);
+        }
+        row.append(text, actions); document.getElementById("publications").append(row);
+    }
+    async function refresh() {
+        const container = document.getElementById("publications"); container.replaceChildren();
+        try {
+            const items = await NTUCUPCloud.listOwnedPublications();
+            if (!items.length) { const empty = document.createElement("p"); empty.className = "muted"; empty.textContent = "Nothing published yet."; container.append(empty); }
+            items.forEach(addPublication);
+        } catch (error) { container.textContent = error.message; }
+    }
+    (async () => {
+        try {
+            const user = await NTUCUPCloud.requireUser("login.html");
+            if (!user) return;
+            document.getElementById("account").textContent = user.email;
+            await refresh();
+        } catch (error) { status.textContent = error.message; }
+    })();
+    document.getElementById("publication-name").addEventListener("input", event => {
+        const slug = document.getElementById("publication-slug");
+        if (!slug.dataset.edited) slug.value = NTUCUPCloud.normalizeSlug(event.target.value);
+    });
+    document.getElementById("publication-slug").addEventListener("input", event => { event.target.dataset.edited = "true"; });
+    document.getElementById("publish").addEventListener("click", async () => {
+        status.textContent = "Publishing…";
+        try {
+            const item = await NTUCUPCloud.publishLocalTournament({
+                name: document.getElementById("publication-name").value,
+                slug: document.getElementById("publication-slug").value,
+                isPublic: document.getElementById("is-public").checked
+            });
+            status.textContent = `Published ${item.name}.`;
+            await refresh();
+        } catch (error) { status.textContent = error.message; }
+    });
+    document.getElementById("logout").addEventListener("click", async () => { await NTUCUPCloud.signOut(); location.replace("login.html"); });
+</script>
+</body>
+</html>

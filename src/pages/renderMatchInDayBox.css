@@ -293,17 +293,9 @@
     background: #b0a3ff;
 }
 
-.match-item-dated-newbie {
-    padding: 10px;
-    border-bottom: 1px solid #ddd;
-    background: #e2e2e2;
-    cursor: pointer;
-    transition: background 0.2s;
-}
 
-.match-item-dated-newbie:hover {
-    background: #4fa7d1;
-}
+
+
 
 /* Calendar styles */
 .calendar-day {
@@ -343,13 +335,8 @@
 .calendar-match:hover {
     background: #b0a3ff;
 }   
-.calendar-match.newbie-cup {
-    background: #b3e6ff;
-    transition: background 0.2s;
-}
-.calendar-match.newbie-cup:hover {
-    background: #7fd0fa;
-}
+
+
 .calendar-match {
     padding: 5px;
     border-radius: 3px;

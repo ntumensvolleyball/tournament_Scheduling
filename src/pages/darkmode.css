@@ -171,9 +171,7 @@
         background: #3a3a3a;
         border-color: #555;
     }
-    .finish-preliminary {
-        background: forestgreen;
-    }
+
     .navigation h4 {
         color: #cecece;
     }
@@ -210,9 +208,7 @@
     .pay-card {
         background: #1e1e1e;
     }
-    .tier-form {
-        background: #2d2d2d;
-    }
+
 
     .fixed-save-bar {
         background: #1a1a1a;
@@ -271,18 +267,18 @@
     .match-list-title-row,
     .official-toolbar,
     .pay-info,
-    .custom-panel,
-    .custom-team-card,
-    .custom-bracket-match,
-    .custom-match-preview {
+    .panel,
+    .team-card,
+    .bracket-match,
+    .match-preview {
         color: #e0e0e0;
     }
     .pay-input,
     .match-date-input,
     .announcement-content,
-    .custom-field input,
-    .custom-field textarea,
-    .custom-field select {
+    .field input,
+    .field textarea,
+    .field select {
         background: #2d2d2d;
         color: #e0e0e0;
         border-color: #555;
@@ -293,7 +289,7 @@
     }
     .checkbox-pill,
     .filter-option,
-    .custom-stage,
+    .stage,
     .team-slot {
         background: #242424;
         color: #e0e0e0;
@@ -343,33 +339,14 @@
     .calendar-match:hover {
         background: #845ab4;
     }
-    .newbie-cup {
-        background: #276baf;
-    }
-    .newbie-cup:hover {
-        background: #0b62b9;
-    }
-    .newbie-cup.finished {
-        background: #666666;
-        color: #cecece;
-    }
-    .newbie-cup.finished:hover {
-        background: #555555;
-        color: #cecece;
-    }
-    .calendar-match.newbie-cup {
-        background: #276baf;
-    }
-    .calendar-match.newbie-cup:hover {
-        background: #0b62b9;
-    }
-    .calendar-match.newbie-cup.finished {
-        background: #666666;
-        color: #cecece;
-    }
-    .calendar-match.newbie-cup.finished:hover {
-         background: #0b62b9;
-    }
+
+
+
+
+
+
+
+
     .finished {
         background: #666666;
         color: #cecece;

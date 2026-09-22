@@ -16,17 +16,13 @@
     <script src = '../utility/dataStorage.js'></script>
     <script src = '../utility/renderMatchInDayBox.js'></script>
     <script src = '../utility/Matchinfo.js'></script>
-    <a href="../../index.html" class="back-link">
+    <a href="../../admin.html" class="back-link">
         <i class="fas fa-arrow-left"></i>
         Back to Main Page
     </a>
     <h1>Sort Matchings</h1>
     <div id = 'matches-left'></div>
     <div class="action-buttons phone-hidden">
-        <button id="batch-input-newbie" class="action-btn primary phone-hidden">
-            <i class="fas fa-list"></i>
-            Batch Input Newbie Days
-        </button>
         <button id="batch-input" class="action-btn primary phone-hidden">
             <i class="fas fa-list"></i>
             Batch Input Available Days
@@ -73,35 +69,11 @@
         </div>
     </div>
 
-    <!-- Newbie Batch Input Popup -->
-    <div class="popup-overlay" id="batch-popup-overlay-newbie"></div>
-    <div class="popup" id="batch-popup-newbie">
-        <div class="input-container">
-            <h3>Batch Input for Newbie Team Availability</h3>
-            <div class="instructions">
-                <p>Format: Team Name 不可比賽日1 不可比賽日2</p>
-                <p>Example:</p>
-                <pre>
-資工 五 四
-森林 二 四
-心理 二 四</pre>
-            </div>
-            <textarea 
-                id="batchInputNewbie" 
-                rows="10" 
-                placeholder="Paste your team availability data here..."
-                class="batch-textarea"
-            ></textarea>
-            <button id="processBatchInputNewbie" class="process-button">Process Teams</button>
-            <div id="processResultNewbie" class="process-result"></div>
-        </div>
-    </div>
-
     <!-- Add this after the existing popups -->
     <div class="container">
         <div class="match-list phone-hidden">
             <select id="sort-type" class="team-selector">
-                <option value="tier">Sort by Group</option>
+                <option value="group">Sort by Group</option>
                 <option value="day">Sort by Day</option>
             </select>
             
@@ -193,8 +165,8 @@
                             `;
                             // Update matches involving this team
                             Object.values(matches).forEach((match, index) => {
-                                if (!match.newbie && !match.custom && (match.teamAID === teamId || match.teamBID === teamId)) {
-                                    matches[index].availableDays = calculateMatchAvailableDays(match.teamAID, match.teamBID, false, false);
+                                if ((match.teamAID === teamId || match.teamBID === teamId)) {
+                                    matches[index].availableDays = calculateMatchAvailableDays(match.teamAID, match.teamBID);
                                 }
                             });
                             
@@ -233,86 +205,6 @@
             document.getElementById('batch-popup').style.display = 'none';
         });
 
-        // Newbie Batch Input Implementation
-
-        document.getElementById('batch-input-newbie').addEventListener('click', () => {
-            document.getElementById('batch-popup-overlay-newbie').style.display = 'block';
-            document.getElementById('batch-popup-newbie').style.display = 'block';
-        });
-
-        document.getElementById('processBatchInputNewbie').addEventListener('click', () => {
-            let teams = fetchNewbieTeams();
-            const matches = fetchMatches();
-            const input = document.getElementById('batchInputNewbie').value;
-            const resultDiv = document.getElementById('processResultNewbie');
-            resultDiv.innerHTML = '';
-            
-            input.split('\n').forEach((line, index) => {
-                const cleanLine = line.trim().replace(/\s+/g, ' ');
-                if (!cleanLine) return;
-                
-                const parts = cleanLine.split(/[\s\t]+/);
-                if (parts.length >= 3) {
-                    const [teamId, day1, day2] = parts;
-                    const resultItem = document.createElement('div');
-                    resultItem.className = 'result-item';
-                    
-                    try {
-                        if (teams[teamId]) {
-                            const unavailableDays = [
-                                Number(convertChineseNumberToArabic(day1)),
-                                Number(convertChineseNumberToArabic(day2))
-                            ];
-                            teams[teamId].availableDays = calculateAvailableDays(unavailableDays);
-                            
-                            resultItem.classList.add('success');
-                            resultItem.innerHTML = `
-                                <span>✓ ${teamId}</span>
-                                <span>不可比賽日: ${day1}, ${day2}</span>
-                            `;
-                            // Update matches involving this team
-                            Object.values(matches).forEach((match, index) => {
-                                if (match.newbie && !match.custom && (match.teamAID === teamId || match.teamBID === teamId)) {
-                                    matches[index].availableDays = calculateMatchAvailableDays(match.teamAID, match.teamBID, true, false);
-                                }
-                            });
-                            
-                            // Save both teams and matches
-                            saveNewbieTeams(teams);
-                            saveMatches(matches);
-                        } else {
-                            resultItem.classList.add('error');
-                            resultItem.textContent = `✗ Team not found: ${teamId}`;
-                        }
-                    } catch (error) {
-                        resultItem.classList.add('error');
-                        resultItem.textContent = `✗ Error processing line ${index + 1}: ${cleanLine}`;
-                    }
-                    
-                    resultDiv.appendChild(resultItem);
-                } else if (cleanLine) {
-                    const resultItem = document.createElement('div');
-                    resultItem.className = 'result-item error';
-                    resultItem.textContent = `✗ Invalid format in line ${index + 1}: ${cleanLine}`;
-                    resultDiv.appendChild(resultItem);
-                }
-            });
-            
-            
-            // Save both teams and matches
-            saveNewbieTeams(teams);
-            updateWeekView();
-            updateWeekViewPhone();
-            renderUndatedMatches();
-            renderUndatedMatchCount();
-        });
-
-        document.getElementById('batch-popup-overlay-newbie').addEventListener('click', () => {
-            document.getElementById('batch-popup-overlay-newbie').style.display = 'none';
-            document.getElementById('batch-popup-newbie').style.display = 'none';
-        });
-
-        
         // WeekView
 
         let currentWeekStart = new Date();
@@ -351,22 +243,12 @@
         function calculateStoredMatchAvailableDays(match) {
             return calculateMatchAvailableDays(
                 match.teamAID,
-                match.teamBID,
-                Boolean(match.newbie),
-                Boolean(match.custom)
+                match.teamBID
             );
         }
 
         function normalizeAvailableDays(match) {
-            if (match.custom) {
-                return calculateStoredMatchAvailableDays(match).map(day => Number(day));
-            }
-
-            const availableDays =
-                Array.isArray(match.availableDays) && match.availableDays.length > 0
-                    ? match.availableDays
-                    : DEFAULT_AVAILABLE_DAYS;
-            return availableDays.map(day => Number(day));
+            return calculateStoredMatchAvailableDays(match).map(Number);
         }
 
         function isMatchAvailableOnDay(match, dayNumber) {
@@ -664,23 +546,23 @@
             const sortType = document.getElementById('sort-type').value;
             //console.log('Sort type:', sortType); // Debug log
             
-            if (sortType === 'tier') {
-                const tiers = {};
+            if (sortType === 'group') {
+                const groups = {};
                 undatedMatches.forEach(match => {
-                    const tier = match.group?.split('-')[0] || 'Unassigned';
-                    if (!tiers[tier]) tiers[tier] = [];
-                    tiers[tier].push(match);
+                    const group = match.group?.split('-')[0] || 'Unassigned';
+                    if (!groups[group]) groups[group] = [];
+                    groups[group].push(match);
                 });
                 
-                Object.keys(tiers).sort().forEach(tier => {
+                Object.keys(groups).sort().forEach(group => {
                     const section = document.createElement('div');
-                    section.className = 'tier-section';
-                    section.innerHTML = `<div class="tier-title">${tier}</div>`;
+                    section.className = 'group-section';
+                    section.innerHTML = `<div class="group-title">${group}</div>`;
                     
                     const matchesGrid = document.createElement('div');
                     matchesGrid.className = 'matches-grid';
                     
-                    tiers[tier].forEach(match => {
+                    groups[group].forEach(match => {
                         const matchBox = createMatchBox(match);
                         matchesGrid.appendChild(matchBox);
                     });
@@ -708,8 +590,8 @@
                 
                 Object.keys(dayMatches).forEach(day => {
                     const section = document.createElement('div');
-                    section.className = 'tier-section';
-                    section.innerHTML = `<div class="tier-title">${day}</div>`;
+                    section.className = 'group-section';
+                    section.innerHTML = `<div class="group-title">${day}</div>`;
                     
                     const matchesGrid = document.createElement('div');
                     matchesGrid.className = 'matches-grid';
@@ -733,8 +615,8 @@
                 (match.teamAID !== match.teamBID || match.teamAID === null)
             );
             const section = document.createElement('div');
-            section.className = 'tier-section';
-            section.innerHTML = `<div class="tier-title">Available on ${dayName} (${availableMatches.length})</div>`;
+            section.className = 'group-section';
+            section.innerHTML = `<div class="group-title">Available on ${dayName} (${availableMatches.length})</div>`;
 
             const matchesGrid = document.createElement('div');
             matchesGrid.className = 'matches-grid';
@@ -925,22 +807,13 @@
 
         // Utility to get weekday in Chinese
         const dayOfWeekZH = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];
-        const tierMap = {
-            'Tier1': '一級',
-            'Tier2': '二級',
-            'Tier3': '三級',
-            'Tier4': '四級',
-            'Newbi': '新生盃'
-        };
         // Replace your fb-announcement listener with this:
         document.getElementById('fb-announcement').addEventListener('click', () => {
             let teams = fetchTeams();
-            let teamsNewbie = fetchNewbieTeams();
-            let teamsCustom = fetchCustomTeams();
-            let announcementText = "[臺大盃公告]\n**本週臺大盃賽程**\n";
+            let announcementText = "[賽事公告]\n**本週賽事賽程**\n";
 
             function getAnnouncementTeamName(match, teamID) {
-                const teamSource = match.custom ? teamsCustom : match.newbie ? teamsNewbie : teams;
+                const teamSource = teams;
                 return teamSource[teamID]?.teamName || teamID;
             }
 
@@ -977,7 +850,7 @@
                 dayAssignments[dateKey].forEach((assignment, index) => {
                     const groupPart = assignment.match.group?.split('-')[0] || '';
                     const prefix = groupPart.substring(0, 5);
-                    const matchTier = tierMap[prefix] ?? '未定級';
+                    const matchGroup = match.group || 'Tournament';
                     // Use "場"+(index+1) as the match number
                     if (groupPart === '假日') {
                         announcementText += `${assignment.match.teamAID}\n`;
@@ -985,7 +858,7 @@
                     }
                     const teamAName = getAnnouncementTeamName(assignment.match, assignment.match.teamAID);
                     const teamBName = getAnnouncementTeamName(assignment.match, assignment.match.teamBID);
-                    announcementText += `場${matchNumberToChinese(index + 1)} (${matchTier}) ${teamAName} vs ${teamBName}\n`;
+                    announcementText += `場${matchNumberToChinese(index + 1)} (${matchGroup}) ${teamAName} vs ${teamBName}\n`;
                 });
             });
 
@@ -1033,21 +906,15 @@
             
             if (userConfirmed) {
                 const teams = fetchTeams();
-                const teamsNewbie = fetchNewbieTeams();
-                const teamsCustom = fetchCustomTeams();
                 //console.log("Teams before reset:", teams); // Debug log
                 
                 Object.keys(teams).forEach(teamId => {
                     teams[teamId].availableDays = null;
                 });
                 
-                Object.keys(teamsNewbie).forEach(teamId => {
-                    teamsNewbie[teamId].availableDays = null;
-                });
 
-                Object.keys(teamsCustom).forEach(teamId => {
-                    teamsCustom[teamId].availableDays = null;
-                });
+
+
                 //console.log("Teams after reset:", teams); // Debug log
                 
                 // Update matches with new available days
@@ -1058,14 +925,13 @@
                 
                 // Save both teams and matches
                 saveTeams(teams);
-                saveNewbieTeams(teamsNewbie);
-                saveCustomTeams(teamsCustom);
                 saveMatches(matches);
                 
                 alert('All teams availability has been reset successfully!');
                 
                 // Refresh the current view
-                updateCurrentTeam();
+                updateWeekView();
+                updateWeekViewPhone();
                 renderUndatedMatches();
                 renderUndatedMatchCount();
             }
@@ -1096,7 +962,7 @@
                 const userConfirmed = confirm("Are you sure you want to leave this page? This will delete all unsaved progress.");
                 if (userConfirmed) {
                     allowNavigation = true;
-                    window.location.href = '../../index.html';
+                    window.location.href = '../../admin.html';
                 }
             }
         });

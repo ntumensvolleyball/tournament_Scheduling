@@ -1,13 +1,13 @@
-.custom-page .page-header {
+.page .page-header {
     margin-bottom: 20px;
 }
 
-.custom-layout {
+.layout {
     display: grid;
     gap: 20px;
 }
 
-.custom-panel {
+.panel {
     background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
@@ -15,26 +15,26 @@
     box-shadow: var(--shadow-sm);
 }
 
-.custom-form-grid {
+.form-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 14px;
     align-items: end;
 }
 
-.custom-field {
+.field {
     display: flex;
     flex-direction: column;
     gap: 6px;
 }
 
-.custom-field.is-hidden {
+.field.is-hidden {
     display: none;
 }
 
-.custom-field input,
-.custom-field textarea,
-.custom-field select {
+.field input,
+.field textarea,
+.field select {
     padding: 10px;
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
@@ -42,7 +42,7 @@
     color: var(--color-text);
 }
 
-.custom-actions {
+.actions {
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
@@ -66,7 +66,7 @@
     background: var(--color-surface-muted);
 }
 
-.custom-table-wrapper {
+.table-wrapper {
     overflow-x: auto;
 }
 
@@ -80,7 +80,7 @@
     font-size: 0.85em;
 }
 
-.custom-builder {
+.builder {
     display: grid;
     grid-template-columns: minmax(320px, 380px) minmax(0, 1fr);
     gap: 16px;
@@ -88,11 +88,11 @@
     min-height: calc(100vh - 170px);
 }
 
-.custom-builder > .custom-panel {
+.builder > .panel {
     min-width: 0;
 }
 
-.custom-team-browser {
+.team-browser {
     display: grid;
     grid-template-columns: 1fr;
     gap: 16px;
@@ -116,14 +116,14 @@
     padding: 4px;
 }
 
-.custom-team-list {
+.team-list {
     display: grid;
     grid-template-columns: 1fr;
     gap: 10px;
     align-content: start;
 }
 
-.custom-team-card {
+.team-card {
     display: grid;
     gap: 5px;
     padding: 10px;
@@ -134,11 +134,11 @@
     user-select: none;
 }
 
-.custom-team-card:active {
+.team-card:active {
     cursor: grabbing;
 }
 
-.custom-stage-controls {
+.stage-controls {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 12px;
@@ -146,7 +146,7 @@
     margin-bottom: 14px;
 }
 
-.custom-stage-panel {
+.stage-panel {
     display: grid;
     grid-template-rows: auto minmax(0, 1fr);
     height: calc(100vh - 170px);
@@ -154,7 +154,7 @@
     overflow: hidden;
 }
 
-.custom-stage {
+.stage {
     display: flex;
     align-items: stretch;
     gap: 36px;
@@ -166,14 +166,14 @@
     background: var(--color-surface-muted);
 }
 
-.custom-round {
+.round {
     display: grid;
     gap: 12px;
     min-width: 190px;
     align-content: start;
 }
 
-.custom-bracket-match {
+.bracket-match {
     display: grid;
     gap: 6px;
     padding: 8px;
@@ -182,7 +182,7 @@
     border: 1px solid var(--color-border);
 }
 
-.custom-bracket-match.is-placeholder {
+.bracket-match.is-placeholder {
     opacity: 0.65;
 }
 
@@ -251,7 +251,7 @@
 
 .drop-hint,
 .empty-stage,
-.custom-builder-status {
+.builder-status {
     color: var(--color-text-muted);
 }
 
@@ -266,7 +266,7 @@
     text-align: center;
 }
 
-.custom-match-preview {
+.match-preview {
     padding: 8px;
     background: var(--color-surface);
     border: 1px solid var(--color-border);
@@ -279,30 +279,30 @@
 }
 
 @media (max-width: 768px) {
-    .custom-builder {
+    .builder {
         grid-template-columns: 1fr;
         min-height: 0;
     }
 
-    .custom-team-browser {
+    .team-browser {
         grid-template-columns: 1fr;
         max-height: none;
         overflow: visible;
         position: static;
     }
 
-    .custom-team-list {
+    .team-list {
         grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     }
 
-    .custom-stage-panel {
+    .stage-panel {
         height: auto;
         min-height: 0;
         max-height: none;
         overflow: visible;
     }
 
-    .custom-stage {
+    .stage {
         min-height: 220px;
     }
 }

@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Organizer login · NTUVBCUP</title>
+    <link rel="stylesheet" href="src/pages/portal.css">
+</head>
+<body>
+<main class="auth-shell">
+    <form id="login-form" class="panel auth-card">
+        <a href="public.html" class="quiet-link">← Public results</a>
+        <p class="eyebrow">NTUVBCUP</p>
+        <h1>Organizer login</h1>
+        <p class="muted">Sign in to schedule matches and publish score updates.</p>
+        <label>Email<input id="email" type="email" autocomplete="email" required></label>
+        <label>Password<input id="password" type="password" autocomplete="current-password" minlength="8" required></label>
+        <button type="submit">Sign in</button>
+        <button type="button" id="signup" class="secondary">Create organizer account</button>
+        <p id="status" class="status" role="status"></p>
+    </form>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="src/config.js"></script>
+<script src="src/utility/cloudData.js"></script>
+<script>
+    const form = document.getElementById("login-form");
+    const status = document.getElementById("status");
+    const next = new URLSearchParams(location.search).get("next") || "admin.html";
+    function values() {
+        return { email: document.getElementById("email").value.trim(), password: document.getElementById("password").value };
+    }
+    async function run(action) {
+        status.textContent = "Working…";
+        try {
+            const result = await action(values().email, values().password);
+            if (result.user && !result.session) status.textContent = "Check your email to confirm the account, then sign in.";
+            else location.replace(next.startsWith("/") || !next.includes(":") ? next : "admin.html");
+        } catch (error) { status.textContent = error.message; }
+    }
+    form.addEventListener("submit", event => { event.preventDefault(); run(NTUCUPCloud.signIn); });
+    document.getElementById("signup").addEventListener("click", () => run(NTUCUPCloud.signUp));
+</script>
+</body>
+</html>

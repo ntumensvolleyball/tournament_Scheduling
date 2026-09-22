@@ -14,7 +14,7 @@
     <script src = '../utility/dataStorage.js'></script>
     <div class="page-header">
         <div class="header-top">
-            <a href="../../index.html" class="back-link">
+            <a href="../../admin.html" class="back-link">
                 <i class="fas fa-arrow-left"></i>
                 Back to Main Page
             </a>
@@ -28,36 +28,16 @@
         </div>
         <div class="action-container">
             <div class="action-buttons">
-                <button id="create-newbie-cup-matches" class="action-btn primary">
-                    <i class="fas fa-magic"></i>
-                    Create Matches (Newbie Cup)
-                </button>
-                <button id="create-matches-according-to-ntu-cup-rules" class="action-btn primary">
-                    <i class="fas fa-magic"></i>
-                    Create Matches (NTU Cup Rules)
-                </button>
                 <button id="add-game-button" class="action-btn success">
                     <i class="fas fa-plus"></i>
-                    Add NtuCup Game
-                </button>
-                <button id="delete-ntucup-games" class="action-btn warningbutmoresubtle">
-                    <i class="fas fa-trash"></i>
-                    Delete NtuCup Games
-                </button>
-                <button id="add-game-button-newbie" class="action-btn success">
-                    <i class="fas fa-plus"></i>
-                    Add Newbie Game
-                </button>
-                <button id="delete-newbie-games" class="action-btn warningbutmoresubtle">
-                    <i class="fas fa-trash"></i>
-                    Delete Newbie Games
+                    Add Game
                 </button>
                 <button id="delete-all-games" class="action-btn danger">
                     <i class="fas fa-trash"></i>
                     Delete All Games
                 </button>
             </div>
-            <div id="final-matches-container" class = 'action-buttons'></div>
+
         </div>
     </div>
     <div id="undo-container"></div>
@@ -66,7 +46,7 @@
     <div class="popup hidden" id="popup">
         <div class="popup-content">
             <h3 class="popup-title">Create New Game</h3>
-            
+
             <div class="div-for-form-groups">
                 <div class="form-group">
                     <label for="teamA">Team A:</label>
@@ -95,37 +75,6 @@
             </div>
         </div>
     </div>
-    <!-- newbie cup popup -->
-    <div class="popup hidden" id="popup-newbie">
-        <div class="popup-content">
-            <h3 class="popup-title">Create New Newbie Game</h3>
-            <div class="div-for-form-groups">
-                <div class="form-group">
-                    <label for="teamA">Team A:</label>
-                    <input type="text" id="search-teamA-newbie" class="search-input" placeholder="Team A">
-                    <div id="teamA-list-newbie" class="scrolling-list"></div>
-                </div>
-
-                <div class="form-group">
-                    <label for="teamB">Team B:</label>
-                    <input type="text" id="search-teamB-newbie" class="search-input" placeholder="Team B">
-                    <div id="teamB-list-newbie" class="scrolling-list"></div>
-                </div>
-            </div>
-            <div class="div-for-form-groups">
-                <div class="form-group">
-                    <span class="phone-hidden group-label">Group Name:</span>
-                    <input type="text" id="group-attribute-newbie" class="search-input" placeholder="group name">
-                </div>
-                <div class="popup-buttons">
-                    <button id="create-game-button-newbie" class="btn-primary">
-                        <i class="fas fa-plus"></i>
-                        Create Game
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
     <div class="matches-container-wrapper">
         <div id="matches-container" class="scrollable-matches">
             <!-- Matches will be rendered here -->
@@ -138,13 +87,13 @@
         // Add at the beginning of JavaScript
         let hasUnsavedChanges = false;
         let gameIDCounter = null;
-        let tierNumber = 4;
+
         let deletedMatches = [];  // Store deleted matches
 
         // Fetch and render matches on page load
         let matches = fetchMatches();
         renderMatches(matches);
-        calculatePreliminaryScore();
+
 
 
         // Function to mark changes as unsaved
@@ -178,92 +127,20 @@
         // Initial page load
         window.addEventListener('load', () => {
             renderMatches(matches);
-            updateCreateMatchesButtonVisibility();
-            checkAndCreateFinalMatches();
+
+
         });
 
 
-        function createGroupMatches(Group, matchType, groupName) {
-            const matches = [];
-            const teamIDs = Group;
-
-            if (matchType === 'round-robin') {
-                for (let i = 0; i < teamIDs.length; i++) {
-                    for (let j = i + 1; j < teamIDs.length; j++) {
-                        matches.push(createGames(teamIDs[i], teamIDs[j], preliminary = true, group = groupName, 0));
-                    }
-                }
-            }
-            return matches;
-        }
-
-        function createMatchesAccordingToNTUCupRules() {
-            try {
-                // Retrieve teams
-                const everyMatches = fetchMatches();
-                const teamsData = fetchTeams();
-                const allMatches = [];
-                const preliminaryGroups = {};
-
-                // Group teams by preliminaryGroup
-                for (const team in teamsData) {
-                    const group = teamsData[team].preliminaryGroup;
-                    if (!preliminaryGroups[group]) {
-                        preliminaryGroups[group] = [];
-                    }
-                    preliminaryGroups[group].push(teamsData[team].teamID);
-                }
-
-                // Generate matches for each group
-                for (const group in preliminaryGroups) {
-                    const matches = createGroupMatches(preliminaryGroups[group], 'round-robin',  group);
-                    allMatches.push(...matches);
-                }
-
-                // Save matche
-                // Combine existing matches with new matches
-                saveMatches([...everyMatches, ...allMatches]);
-
-            } catch (error) {
-                console.error('Error processing matches:', error);
-            }
-        }
-
-        function padToPowerOfTwo(arr, power) {
-            const length = arr.length;
-            if (length === 1) return [...arr, ...arr]; // Duplicate if only one team
-            if (length === Math.pow(2, power)) return arr; // Already a power of 2
-            // Split arr into two halves
-            const mid = Math.ceil(length / 2);
-            const array1 = arr.slice(0, mid);
-            const array2 = arr.slice(mid);
-            return [...padToPowerOfTwo(array1, power-1), ...padToPowerOfTwo(array2, power-1)];
-        }
-
-        function createNewbieCupMatches() {
-            const teams = fetchNewbieTeams();
-            // Filter for NewbieCup teams, e.g. by group or a flag
-            const newbieTeams = Object.values(teams)
-                .map(team => team.teamID);
-
-            // Pad to next power of 2 for a balanced bracket
-            const paddedTeams = padToPowerOfTwo(newbieTeams, Math.ceil(Math.log2(newbieTeams.length)));
-            console.log('Padded Teams:', paddedTeams);
-            createBracket(paddedTeams, 'NewbieCup', boolNewbie=true);
-        }
-
-
-        // Render matches in the container
-        // don't pass in a null object
         function renderMatches(matches) {
             const container = document.getElementById("matches-container");
             container.innerHTML = "";
-            
+
             // Add undo button container at the top
             const undoContainer = document.createElement("div");
             undoContainer.className = "undo-container";
             undoContainer.style.marginBottom = "20px";
-            
+
             if (deletedMatches.length > 0) {
                 const undoButton = document.createElement("button");
                 undoButton.className = "undo-button";
@@ -276,9 +153,9 @@
                 };
                 undoContainer.appendChild(undoButton);
             }
-            
+
             container.appendChild(undoContainer);
-            
+
             if (!matches || matches.length === 0) {
                 console.log("No matches to display");
                 return;
@@ -292,7 +169,7 @@
                         <label>Game ID: ${match.id}</label>
                         <label class="group-label">${match.group}</label>
                         <label class="team-label">Team A: ${match.teamAID} Team B: ${match.teamBID}</label>
-                        
+
                         <div class="set-container">
                             <label>Set 1:</label>
                             <input type="text" maxlength="2" class="score-input" data-index="${index}" data-set="set1" data-team="0" value="${match.set1[0] || ''}">
@@ -334,7 +211,7 @@
                 input.addEventListener('input', function(e) {
                     // Only allow numbers
                     this.value = this.value.replace(/[^0-9]/g, '');
-                    
+
                     // Auto-advance when two digits are entered
                     if (this.value.length === 2) {
                         const allInputs = Array.from(document.querySelectorAll('.score-input'));
@@ -360,7 +237,7 @@
 
             // Add your existing event listeners
             setupOfficialDropdowns();
-            
+
             document.querySelectorAll(".delete-match").forEach((button) => {
                 button.addEventListener("click", (event) => {
                     const index = event.target.getAttribute("data-index");
@@ -368,7 +245,7 @@
                 });
             })
 
-            
+
         }
 
         // Also modify deleteMatch to recalculate stats
@@ -377,7 +254,7 @@
             if (confirmDelete) {
                 // Get the match to be deleted and teams data
                 const matchToDelete = matches[index];
-                const teams = matches[index].newbie === true ? fetchNewbieTeams() : fetchTeams();
+                const teams = fetchTeams();
 
                 // Remove game ID from both teams' games arrays
                 if (teams[matchToDelete.teamAID]) {
@@ -386,9 +263,9 @@
                 if (teams[matchToDelete.teamBID]) {
                     teams[matchToDelete.teamBID].games = teams[matchToDelete.teamBID].games.filter(id => id !== matchToDelete.id);
                 }
-                
+
                 // Update teams
-                matches[index].newbie ? saveNewbieTeams(teams) : saveTeams(teams);
+                saveTeams(teams);
 
                 // Delete the match
                 deletedMatches.push({
@@ -402,423 +279,6 @@
             }
         }
 
-        // Add this function to check if matches exist and update button visibility
-        function updateCreateMatchesButtonVisibility() {
-            const createMatchesButton = document.getElementById('create-matches-according-to-ntu-cup-rules');
-            const createNewbieCupButton = document.getElementById('create-newbie-cup-matches');
-
-            if (fetchGamesStarted()==="true") {
-                createMatchesButton.style.backgroundColor = 'gray';
-            } else {
-                createMatchesButton.style.display = 'block';
-            }
-            if(fetchNewbieStarted()==="true"){
-                createNewbieCupButton.style.backgroundColor = 'gray';
-            } else {
-                createNewbieCupButton.style.display = 'block';
-            }
-            
-        }
-
-        
-
-        // Modify the create matches button click handler
-        document.getElementById('create-matches-according-to-ntu-cup-rules').addEventListener('click', () => {
-            if (fetchGamesStarted() === "true") {
-                if (!confirm("Matches have already been created. Are you sure you want to create additional matches?")) {
-                    return;
-                }
-            }
-            createMatchesAccordingToNTUCupRules()
-            console.log('match creating......')
-            markGamesStarted(true);
-            matches = fetchMatches();
-            renderMatches(matches);
-            updateCreateMatchesButtonVisibility();
-            alert('Matches created according to NTU Cup rules.');
-        });
-
-        document.getElementById('create-newbie-cup-matches').addEventListener('click', () => {
-            if (fetchNewbieStarted() === "true") {
-                if (!confirm("Matches have already been created. Are you sure you want to create additional matches?")) {
-                    return;
-                }
-            }
-            createNewbieCupMatches()
-            console.log('match creating......')
-            markNewbieStarted(true);
-            matches = fetchMatches();
-            renderMatches(matches);
-            updateCreateMatchesButtonVisibility();
-            alert('Newbie Cup matches created.');
-        });
-
-
-        /* Generate Final Matches */
-        function showGenerateFinalsButton(tier) {
-            //console.log('Raw tier value:', tier);
-
-            const container = document.getElementById("final-matches-container");
-            const tierNumber = tier.replace('Tier', ''); // Extracts the tier number (1,2,3,4)
-            
-            if (!tierNumber || isNaN(tierNumber)) return; // Exit if tierNumber is invalid
-
-            //console.log(`Creating button for Tier ${tierNumber}`);
-            
-            const finalsButton = document.createElement("button");
-            finalsButton.className = 'action-btn success';
-            finalsButton.textContent = `Generate Tier ${tierNumber} Finals`;
-
-            let firstClickKey = `isTier${tierNumber}FirstClick`;
-            let isFirstClick = fetchFirstClick(firstClickKey) !== "false";
-            if (!isFirstClick) finalsButton.style.backgroundColor = "#888";
-
-            finalsButton.addEventListener("click", () => {
-                if (isFirstClick) {
-                    saveFirstClick(firstClickKey, "false");
-                    isFirstClick = false;
-                    generateFinalMatches(parseInt(tierNumber));
-                    alert(`Tier ${tierNumber} final matches generated`);
-                } else {
-                    if (confirm("Finals matches already generated. Generate again?")) {
-                        generateFinalMatches(parseInt(tierNumber));
-                    }
-                }
-            });
-
-            container.appendChild(finalsButton);
-        }
-
-
-
-
-        //https://docs.google.com/document/d/1Wrz8QhUekCM4XEoycSSXh5Zimh9tDX-CzKcdyoL2bmU/edit?tab=t.0
-        function generateFinalMatches(Tier) {  
-            calculatePreliminaryScore();
-            const matches = fetchMatches();
-            const teams = fetchTeams();
-        //一級 的各組的前四打八強賽淘汰賽各組後二打保級賽 最後三名降級（8隊的淘汰&4隊的淘汰）
-            if (Tier === 1) {
-                // Tier 1: Top 4 from each group → Quarterfinals, Bottom 2 → Relegation
-                const tier1Groups = ["Tier1-A", "Tier1-B"];
-                let quarterFinalists = [];
-                let relegationTeams = [];
-
-                tier1Groups.forEach((group) => {
-                    console.log('Processing Tier1 group:', group);
-                    let groupTeams = Object.values(teams)
-                        .filter(team => team.preliminaryGroup === group);
-                    
-                    // Sort by points 
-                    groupTeams.sort((a, b) => b.preliminaryScore - a.preliminaryScore);
-                    
-                    quarterFinalists.push(...groupTeams.slice(0, 4)); // Top 4
-                    relegationTeams.push(...groupTeams.slice(-2)); // Bottom 2
-                });
-                console.log('Quarter finalists:', quarterFinalists);
-                console.log('relegationTeams: ', relegationTeams);
-                let quarterFinalMatches = [
-                    quarterFinalists[0].teamID, quarterFinalists[7].teamID,
-                    quarterFinalists[2].teamID, quarterFinalists[5].teamID,
-                    quarterFinalists[1].teamID, quarterFinalists[6].teamID,
-                    quarterFinalists[3].teamID, quarterFinalists[4].teamID
-                ];
-                
-                let relegationMatches = [
-                    relegationTeams[0].teamID, relegationTeams[3].teamID,
-                    relegationTeams[1].teamID, relegationTeams[2].teamID
-                ];
-                createBracket(quarterFinalMatches, 'Tier1Finals');
-                createBracket(relegationMatches, 'Tier1Relegation');
-            }
-        //二級 巨大淘汰賽
-            if (Tier === 2) {
-                // Tier 2: 3 groups → Top 2 from each group → Elimination rounds
-                const tier2Groups = ["Tier2-A", "Tier2-B", "Tier2-C"];
-                let playoffTeams = [];
-                let relegationTeams = [];
-                let groupTeams = [];
-                let rankingGroups = { first: [], second: [], third: [] , forth: []};
-                tier2Groups.forEach((group) => {
-                    let groupTeams = Object.values(teams)
-                        .filter(team => team.preliminaryGroup === group)
-                        .sort((a, b) => b.preliminaryScore - a.preliminaryScore);
-
-                    rankingGroups.first.push(groupTeams[0]);
-                    rankingGroups.second.push(groupTeams[1]);
-                    rankingGroups.third.push(groupTeams[2]);
-                    rankingGroups.forth.push(groupTeams[3]);
-                });
-                rankingGroups.first.sort((a, b) => b.preliminaryScore - a.preliminaryScore);
-                rankingGroups.second.sort((a, b) => b.preliminaryScore - a.preliminaryScore);
-                rankingGroups.third.sort((a, b) => b.preliminaryScore - a.preliminaryScore);
-                rankingGroups.forth.sort((a, b) => b.preliminaryScore - a.preliminaryScore);
-                
-                console.log('All playoff teams:', groupTeams);
-                // Match remaining teams (lowest second-place vs lowest first-place)
-                let playoffMatches = [
-                    rankingGroups.first[0].teamID, rankingGroups.first[0].teamID,//seed
-                    rankingGroups.third[1].teamID, rankingGroups.third[2].teamID,
-                    rankingGroups.second[1].teamID,rankingGroups.forth[2].teamID,
-                    rankingGroups.second[0].teamID, rankingGroups.second[0].teamID,//seed
-                    rankingGroups.first[2].teamID, rankingGroups.first[2].teamID, //seed
-                    rankingGroups.second[2].teamID, rankingGroups.forth[1].teamID,
-                    rankingGroups.third[0].teamID, rankingGroups.forth[0].teamID,
-                    rankingGroups.first[1].teamID, rankingGroups.first[1].teamID,//seed
-                ];
-                createBracket(playoffMatches, 'Tier2Finals');
-
-            }
-        //三級 分組第一打1~6名排名賽，分組第二打7~12名排名賽，分組第三打13~18排名賽每個排名賽依據積分選兩個種子，積分第三高打積分第六，積分第四打第五。
-            if (Tier === 3) {
-                // Tier 3: First place teams → Rank 1-6, Second place → Rank 7-12, Third place → Rank 13-18
-                const tier3Groups = ["Tier3-A", "Tier3-B", "Tier3-C", "Tier3-D", "Tier3-E", "Tier3-F"];
-                let rankingGroups = { first: [], second: [], third: [] };
-
-                tier3Groups.forEach((group) => {
-                    let groupTeams = Object.values(teams)
-                        .filter(team => team.preliminaryGroup === group)
-                        .sort((a, b) => b.preliminaryScore - a.preliminaryScore);
-
-                    rankingGroups.first.push(groupTeams[0]);
-                    rankingGroups.second.push(groupTeams[1]);
-                    rankingGroups.third.push(groupTeams[2]);
-                });
-                for(i = 0;i< rankingGroups.first.length; i++){
-                    for(j = i;j<rankingGroups.first.length; j++){
-                        if(rankingGroups.first[i].preliminaryScore < rankingGroups.first[j].preliminaryScore){
-                            // Swap
-                            [rankingGroups.first[i], rankingGroups.first[j]] = [rankingGroups.first[j], rankingGroups.first[i]];
-                            [rankingGroups.second[i], rankingGroups.second[j]] = [rankingGroups.second[j], rankingGroups.second[i]];
-                        }
-                    }
-                }
-                rankingGroups.third.sort((a, b) => b.preliminaryScore - a.preliminaryScore);
-                // Creatematches
-                let rankingMatch1 = [
-                    rankingGroups.first[0].teamID, rankingGroups.first[0].teamID,//seed
-                    rankingGroups.second[2].teamID, rankingGroups.second[1].teamID,
-                    rankingGroups.second[5].teamID, rankingGroups.first[4].teamID, 
-                    rankingGroups.first[3].teamID, rankingGroups.first[3].teamID,//seed
-                    rankingGroups.first[2].teamID, rankingGroups.first[2].teamID,//seed
-                    rankingGroups.first[5].teamID, rankingGroups.second[4].teamID, 
-                    rankingGroups.second[3].teamID, rankingGroups.second[0].teamID, 
-                    rankingGroups.first[1].teamID, rankingGroups.first[1].teamID,//seed
-                ];
-                let rankingMatch3 = [
-                    rankingGroups.third[0].teamID, rankingGroups.third[0].teamID,//seed
-                    rankingGroups.third[4].teamID, rankingGroups.third[5].teamID,
-                    rankingGroups.third[2].teamID, rankingGroups.third[3].teamID,
-                    rankingGroups.third[1].teamID, rankingGroups.third[1].teamID,//seed
-                ];
-                createBracket(rankingMatch1, 'Tier3Finals');
-                createBracket(rankingMatch3, 'Tier3Relegation');
-            }
-        //四級分組一打排名賽 奇數個分組一，積分最高的當種子，偶數個但不是2^n分組一，前N-2^[floor_function(log(2,N))]有優勢，N= 2^n for some n 就積分最高打積分最低的。
-            if (Tier === 4) {
-                // Tier 4: Ranking playoffs with seeding rules
-                const tier4Groups = ["Tier4-A", "Tier4-B", "Tier4-C", "Tier4-D"];
-                let firstSeed = [];
-                let secondSeed = [];
-                tier4Groups.forEach((group) => {
-                    let groupTeams = Object.values(teams)
-                        .filter(team => team.preliminaryGroup === group)
-                        .sort((a, b) => b.preliminaryScore - a.preliminaryScore);
-
-                    firstSeed.push(...groupTeams.slice(0, 1));
-                    secondSeed.push(...groupTeams.slice(1, 2));
-                });
-                for(i = 0;i< firstSeed.length; i++){
-                    for(j = i;j<firstSeed.length; j++){
-                        if(firstSeed[i].preliminaryScore < firstSeed[j].preliminaryScore){
-                            // Swap
-                            [firstSeed[i], firstSeed[j]] = [firstSeed[j], firstSeed[i]];
-                            [secondSeed[i], secondSeed[j]] = [secondSeed[j], secondSeed[i]];
-                        }
-                    }
-                }
-                console.log('firstSeed: ', firstSeed);
-                console.log('secondSeed: ', secondSeed);
-                let playoffMatches = [
-                    firstSeed[0].teamID, secondSeed[2].teamID, 
-                    secondSeed[1].teamID, firstSeed[3].teamID, 
-                    firstSeed[2].teamID, secondSeed[0].teamID, 
-                    secondSeed[3].teamID, firstSeed[1].teamID
-                ];
-                createBracket(playoffMatches, 'Tier4Finals')
-            }
-            console.log('matches generated');
-            document.getElementById('save-all-matches').click();
-            location.reload();
-        }
-
-        // ** loser bracket ** //
-
-        //https://docs.google.com/document/d/1Wrz8QhUekCM4XEoycSSXh5Zimh9tDX-CzKcdyoL2bmU/edit?tab=t.0
-        function generateFinalLoserMatches(Tier) {  
-            calculatePreliminaryScore();
-            const matches = fetchMatches();
-            const teams = fetchTeams();
-            const brackets = fetchBrackets();
-        //一級 的各組的前四打八強賽淘汰賽各組後二打保級賽 最後三名降級（8隊的淘汰&4隊的淘汰）
-            if (Tier === 1) {
-                // Tier 1: brackets[rounder 1 ]losers
-                const Tier1Finalsbracket = brackets['Tier1Finals'];
-                const Tier1FinalsRound1 = Tier1Finalsbracket.roundMatchIds[0];
-                const loserMatch = [];
-                Tier1FinalsRound1.forEach((matchid) => {
-                    loserMatch.push(matches.find(m => m.id === matchid).loser);
-                });
-                console.log('loserMatch: ', loserMatch);
-                createBracket(loserMatch, 'Tier1Finals5-8');
-            }
-        //二級 巨大淘汰賽
-            if (Tier === 2) {
-                // Tier 2: brackets[rounder 1 ]losers
-                const Tier2Finalsbracket = brackets['Tier2Finals'];
-                const Tier2FinalsRound1 = Tier2Finalsbracket.roundMatchIds[1];
-                const loser5_8Match = [];
-                Tier2FinalsRound1.forEach((matchid) => {
-                    loser5_8Match.push(matches.find(m => m.id === matchid).loser);
-                });
-                console.log('loserMatch: ', loser5_8Match);
-                createBracket(loser5_8Match, 'Tier2Finals5-8');
-            }
-            if (Tier === 22){
-                const Tier2Finalsbracket = brackets['Tier2Finals'];
-                const Tier2FinalsRound2 = Tier2Finalsbracket.roundMatchIds[0];
-                const loser9_12Match = [];
-                Tier2FinalsRound2.forEach((matchid) => {
-                    if (matches.find(m => m.id === matchid).teamAID !== matches.find(m => m.id === matchid).teamBID){
-                        loser9_12Match.push(matches.find(m => m.id === matchid).loser);
-                    }
-                });
-                console.log('loserMatch: ', loser9_12Match);
-                createBracket(loser9_12Match, 'Tier2Finals9-12');
-            }
-        //三級 分組八強打完打5-8, 9-12。
-            if (Tier === 3) {
-                // Tier 3: brackets[rounder 1 ]losers
-                const Tier3Finalsbracket = brackets['Tier3Finals'];
-                const Tier3FinalsRound1 = Tier3Finalsbracket.roundMatchIds[1];
-                const loser5_8Match = [];
-                Tier3FinalsRound1.forEach((matchid) => {
-                    loser5_8Match.push(matches.find(m => m.id === matchid).loser);
-                });
-                console.log('loserMatch: ', loser5_8Match);
-                createBracket(loser5_8Match, 'Tier3Finals5-8');
-            }
-            if (Tier === 33){
-                const Tier3Finalsbracket = brackets['Tier3Finals'];
-                const Tier3FinalsRound2 = Tier3Finalsbracket.roundMatchIds[0];
-                const loser9_12Match = [];
-                Tier3FinalsRound2.forEach((matchid) => {
-                    if (matches.find(m => m.id === matchid).teamAID !== matches.find(m => m.id === matchid).teamBID){
-                        loser9_12Match.push(matches.find(m => m.id === matchid).loser);
-                    }
-                });
-                console.log('loserMatch: ', loser9_12Match);
-                createBracket(loser9_12Match, 'Tier3Finals9-12');
-            }
-        //四級分組一打排名賽 奇數個分組一，積分最高的當種子，偶數個但不是2^n分組一，前N-2^[floor_function(log(2,N))]有優勢，N= 2^n for some n 就積分最高打積分最低的。
-            // no need for generating losers
-            console.log('matches generated');
-            document.getElementById('save-all-matches').click();
-            location.reload();
-        }
-
-        // Bracket creation passing in an array of teams
-        function createBracket(teams, bracketName, boolNewbie = false) {
-            const matches = [];
-            const numRounds = Math.ceil(Math.log2(teams.length));
-            
-            // Track matches by round for easier referencing
-            const matchesByRound = [];
-            console.log(teams) ;
-            // First round matches
-            let currentRound = [];
-            for (let i = 0; i < teams.length; i += 2) {
-                const match = createGames(
-                    teams[i],
-                    teams[i + 1] || null,
-                    false,
-                    `${bracketName}-Round1`,
-                    boolNewbie
-                );
-                currentRound.push(match);
-                matches.push(match);
-            }
-            matchesByRound.push(currentRound);
-            
-            // Create subsequent rounds
-            for (let round = 2; round <= numRounds; round++) {
-                const numMatchesInRound = Math.pow(2, numRounds - round);
-                const nextRound = [];
-                
-                for (let i = 0; i < numMatchesInRound; i++) {
-                    const match = createGames(
-                        null,
-                        null,
-                        false,
-                        `${bracketName}-Round${round}`,
-                        boolNewbie = boolNewbie
-                    );
-                    nextRound.push(match);
-                    matches.push(match);
-                }
-                if(round == numRounds){// for 3rd 4th place
-                    const match = createGames(
-                        null,
-                        null,
-                        false,
-                        `${bracketName}-Round${round}`,
-                        boolNewbie = boolNewbie
-                    );
-                    nextRound.push(match);
-                    matches.push(match);
-                }
-                matchesByRound.push(nextRound);
-            }
-            
-            // Set up nextMatch references
-            for (let round = 0; round < numRounds - 1; round++) {
-                const currentRoundMatches = matchesByRound[round];
-                for (let i = 0; i < currentRoundMatches.length; i++) {
-                    const nextMatchIndex = Math.floor(i / 2);
-                    const nextMatch = matchesByRound[round + 1][nextMatchIndex];
-                    currentRoundMatches[i].nextMatch = nextMatch.id;
-                }
-                if (round == numRounds - 2) {
-                    for (let i = 0; i < currentRoundMatches.length; i++) {
-                        const nextMatchIndex = Math.floor(i / 2);
-                        const nextMatch = matchesByRound[round + 1][nextMatchIndex];
-                        currentRoundMatches[i].loserNextMatch = nextMatch.id + 1;
-                    }
-                }
-            }
-            
-            // Save matches
-            const existingMatches = fetchMatches();
-            saveMatches([...existingMatches, ...matches]);
-            
-            // Save bracket structure
-            const bracketStructure = {
-                name: bracketName,
-                rounds: numRounds,
-                matchIds: matches.map(m => m.id),
-                roundMatchIds: matchesByRound.map(round => round.map(m => m.id))
-            };
-            const existingBrackets = fetchBrackets();
-            existingBrackets[bracketName] = bracketStructure;
-            saveBrackets(existingBrackets);
-            
-            console.log('Created bracket:', bracketStructure);
-            return matches;
-        }
-
-
-        /* Popup structure */
-        // Generate a scrolling list with search functionality
         function generateScrollingList(inputId, listId, teams) {
             const input = document.getElementById(inputId);
             const list = document.getElementById(listId);
@@ -827,11 +287,11 @@
                 Object.values(teams).filter(team => team.teamID.includes(filter)).forEach(team => {
                     const item = document.createElement("div");
                     item.textContent = team.teamID;
-                    
+
                     // Add CSS styles directly to the element
                     item.style.cursor = 'default';  // Prevents cursor from changing
                     item.style.transition = 'background-color 0.2s';  // Smooth transition
-                    
+
                     // Add hover event listeners
                     item.addEventListener('mouseenter', () => {
                         item.style.backgroundColor = '#e0e0e0';  // Darker background on hover
@@ -839,7 +299,7 @@
                     item.addEventListener('mouseleave', () => {
                         item.style.backgroundColor = '';  // Reset background
                     });
-                    
+
                     item.addEventListener("click", () => {
                         input.value = team.teamID;
                     });
@@ -886,86 +346,47 @@
                 return;
             }
 
-            const newGame = createGames(teamAID, teamBID, preliminary = null, groupName, false);
-            const matches = fetchMatches();
+            const newGame = createGames(teamAID, teamBID, groupName);
+            matches = fetchMatches();
             matches.push(newGame);
             saveMatches(matches);
             renderMatches(matches);
             // Mark beginning for matches
-            markGamesStarted(true);
+
             // Close the popup
             document.getElementById("popup-overlay").style.display = 'none';
             document.getElementById("popup").style.display = 'none';
         });
 
-        // add new Newbie Cup match
-        // Show the popup
-        document.getElementById("add-game-button-newbie").addEventListener("click", () => {
-            const teams = fetchNewbieTeams();
-            generateScrollingList("search-teamA-newbie", "teamA-list-newbie", teams);
-            generateScrollingList("search-teamB-newbie", "teamB-list-newbie", teams);
-            document.getElementById("popup-overlay").style.display = 'block';
-            document.getElementById("popup-newbie").style.display = 'block';
-        });
-
-        // Create a game and update matches
-        document.getElementById("create-game-button-newbie").addEventListener("click", () => {
-            const teamAID = document.getElementById("search-teamA-newbie").value;
-            const teamBID = document.getElementById("search-teamB-newbie").value;
-            const groupName = document.getElementById("group-attribute-newbie").value;
-            if (!teamAID || !teamBID) {
-                alert("Please select both teams.");
-                return;
-            }
-
-            const newGame = createGames(teamAID, teamBID, preliminary = null, groupName, true);
-            const matches = fetchMatches();
-            matches.push(newGame);
-            saveMatches(matches);
-            renderMatches(matches);
-            // Mark beginning for matches
-            markGamesStarted(true);
-            // Close the popup
-            document.getElementById("popup-overlay").style.display = 'none';
-            document.getElementById("popup-newbie").style.display = 'none';
-        });
-
         document.getElementById("popup-overlay").addEventListener("click", () => {
             document.getElementById("popup-overlay").style.display = 'none';
-            document.getElementById("popup-newbie").style.display = 'none';
+
             document.getElementById("popup").style.display = 'none';
         });
 
         document.getElementById('delete-all-games').addEventListener('click', async () => {
             const userConfirmed = confirm("Are you sure you want to delete all matches? This action cannot be undone.");
-            
+
             if (userConfirmed) {
                 // Clear matches
                 matches = [];
                 saveMatches(matches);
-                
+
                 // Reset official stats
                 saveOfficialStats({});
-                
+
                 // Reset game ID counter
                 saveGameIDCounter(0);
-                
-                // Reset finals Button
-                for (let i = 1;i<=tierNumber;i++){
-                    saveFirstClick(`isTier${i}FirstClick`, true);
-                }
+                saveTournaments({});
 
-                // Reset game status
-                markGamesStarted(false);
-                markNewbieStarted(false);
                 // Reset all teams' games arrays
                 const teams = fetchTeams();
                 Object.keys(teams).forEach(teamId => {
                     teams[teamId].games = [];
                 });
                 saveTeams(teams);
-                
-                updateCreateMatchesButtonVisibility();
+
+
                 markChangesSaved();
                 alert("All matches and official data have been deleted successfully.");
                 renderMatches(matches);
@@ -975,48 +396,9 @@
             }
         });
 
-        document.getElementById('delete-ntucup-games').addEventListener('click', async () => {
-            const userConfirmed = confirm("Are you sure you want to delete all NtuCup matches? This action cannot be undone.");
-            const teams = fetchTeams();
-            if (userConfirmed) {
-                // Clear NtuCup matches
-                matches = matches.filter(match => match.newbie === true);
-                saveMatches(matches);
-                Object.keys(teams).forEach(teamId => {
-                    teams[teamId].games = [];
-                });
-                saveTeams(teams);
-                markGamesStarted(false);
-                alert("All NtuCup matches have been deleted successfully.");
-                renderMatches(matches);
-                location.reload();
-            } else {
-                alert("Data deletion canceled.");
-            }
-        });
-        document.getElementById('delete-newbie-games').addEventListener('click', async () => {
-            const userConfirmed = confirm("Are you sure you want to delete all Newbie matches? This action cannot be undone.");
-            const teams = fetchTeams();
-            if (userConfirmed) {
-                // Clear Newbie matches
-                matches = matches.filter(match => match.newbie !== true);
-                saveMatches(matches);
-                Object.keys(teams).forEach(teamId => {
-                    teams[teamId].games = [];
-                });
-                saveTeams(teams);
-                markNewbieStarted(false);
-                alert("All Newbie matches have been deleted successfully.");
-                renderMatches(matches);
-                location.reload();
-            } else {
-                alert("Data deletion canceled.");
-            }
-        });
-
         function updateOfficialStats(officialName) {
             if (!officialName) return;
-            
+
             const officialStats = fetchOfficialStats();
             officialStats[officialName] = (officialStats[officialName] || 0) + 1;
             saveOfficialStats(officialStats);
@@ -1024,7 +406,7 @@
 
         function setupOfficialDropdowns() {
             const searchInputs = document.querySelectorAll('.official-search');
-            
+
             searchInputs.forEach(input => {
                 const dropdownList = input.nextElementSibling;
                 const officialStats = fetchOfficialStats();
@@ -1045,14 +427,14 @@
                     const matchIndex = input.getAttribute('data-index');
                     const previousOfficial = matches[matchIndex].official;
                     const newOfficial = input.value;
-                    
+
                     // Update match official
                     matches[matchIndex].official = newOfficial;
-                    
-                    
+
+
                     // Save matches
                     saveMatches(matches);
-                    
+
                     console.log(`Updated official from ${previousOfficial} to ${newOfficial}`);
                 });
 
@@ -1068,8 +450,8 @@
         function updateOfficialList(dropdownList, searchText, officialStats) {
             dropdownList.innerHTML = '';
             const officials = Object.keys(officialStats);
-            
-            const filteredOfficials = officials.filter(official => 
+
+            const filteredOfficials = officials.filter(official =>
                 official.toLowerCase().includes(searchText.toLowerCase())
             );
 
@@ -1079,7 +461,7 @@
                 // Add CSS styles directly to the element
                 div.style.cursor = 'default';  // Prevents cursor from changing
                 div.style.transition = 'background-color 0.2s';  // Smooth transition
-                
+
                 // Add hover event listeners
                 div.addEventListener('mouseenter', () => {
                     div.style.backgroundColor = '#e0e0e0';  // Darker background on hover
@@ -1087,23 +469,23 @@
                 div.addEventListener('mouseleave', () => {
                     div.style.backgroundColor = '';  // Reset background
                 });
-                
-                
+
+
                 div.addEventListener('click', () => {
                     const input = dropdownList.previousElementSibling;
                     const matchIndex = input.getAttribute('data-index');
                     const previousOfficial = matches[matchIndex].official;
-                    
+
                     // Update input and match
                     input.value = official;
                     matches[matchIndex].official = official;
 
                     // Save matches
                     saveMatches(matches);
-                    
+
                     // Refresh the dropdown with updated stats
                     updateOfficialList(dropdownList, official, updatedStats);
-                    
+
                     dropdownList.style.display = 'none';
                     console.log(`Updated official from ${previousOfficial} to ${official}`);
                 });
@@ -1118,11 +500,11 @@
                     const input = dropdownList.previousElementSibling;
                     const matchIndex = input.getAttribute('data-index');
                     const previousOfficial = matches[matchIndex].official;
-                    
+
                     // Update input and match
                     input.value = searchText;
                     matches[matchIndex].official = searchText;
-                    
+
                     // Save matches
                     saveMatches(matches);
                     renderMatches(matches);
@@ -1131,7 +513,7 @@
                         const list = searchInput.nextElementSibling;
                         updateOfficialList(list, searchInput.value, updatedStats);
                     });
-                    
+
                     dropdownList.style.display = 'none';
                     console.log(`Added new official: ${searchText}`);
                 });
@@ -1147,24 +529,24 @@
 
         function toggleView() {
             isCalendarView = !isCalendarView;
-            
+
             // Get all view elements
             const calendarView = document.getElementById('calendar-view');
             const matchesWrapper = document.querySelector('.matches-container-wrapper');
-            
+
             if (isCalendarView) {
                 // Switch to calendar view
                 calendarView.style.display = 'block';
                 matchesWrapper.style.display = 'none';
                 renderCalendar();
-                
+
                 // Update button text
                 document.querySelector('.toggle-text').textContent = 'Switch to List View';
             } else {
                 // Switch to list view
                 calendarView.style.display = 'none';
                 matchesWrapper.style.display = 'flex';
-                
+
                 // Update button text
                 document.querySelector('.toggle-text').textContent = 'Switch to Calendar View';
             }
@@ -1173,16 +555,16 @@
         function renderCalendar() {
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
-            
+
             // Update header
-            document.getElementById('current-month').textContent = 
+            document.getElementById('current-month').textContent =
                 new Date(year, month).toLocaleString('default', { month: 'long', year: 'numeric' });
-            
+
             const firstDay = new Date(year, month, 1);
             const lastDay = new Date(year, month + 1, 0);
             const daysContainer = document.getElementById('calendar-days');
             daysContainer.innerHTML = '';
-            
+
             // Add padding days from previous month
             const firstDayOfWeek = firstDay.getDay();
             const prevMonthLastDay = new Date(year, month, 0).getDate();
@@ -1190,13 +572,13 @@
                 const dayDiv = createDayDiv(prevMonthLastDay - i, true);
                 daysContainer.appendChild(dayDiv);
             }
-            
+
             // Add current month days
             const matches = fetchMatches();
             for (let day = 1; day <= lastDay.getDate(); day++) {
                 const dayDiv = createDayDiv(day, false);
                 const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                
+
                 // Add matches for this day
                 const dayMatches = matches.filter(match => match.date === dateStr);
                 const matchesContainer = dayDiv.querySelector('.calendar-matches');
@@ -1207,10 +589,10 @@
                     matchDiv.addEventListener('click', () => showMatchDetails(match));
                     matchesContainer.appendChild(matchDiv);
                 });
-                
+
                 daysContainer.appendChild(dayDiv);
             }
-            
+
             // Add padding days from next month
             const lastDayOfWeek = lastDay.getDay();
             for (let i = 1; i < 7 - lastDayOfWeek; i++) {
@@ -1244,19 +626,19 @@
         // Add new save all function
         document.getElementById('save-all-matches').addEventListener('click', () => {
             console.log('save-all-matches')
-            const matches = fetchMatches();
+            matches = fetchMatches();
             const teams = fetchTeams();
             const refMatches = fetchMatches();
             // Get all match elements from the DOM
             document.querySelectorAll('.match').forEach((matchDiv, index) => {
                 if (index >= matches.length) return; // Skip if no corresponding match data
-                
+
                 const inputs = matchDiv.querySelectorAll('input');
                 inputs.forEach(input => {
                     const field = input.getAttribute('data-field');
                     const set = input.getAttribute('data-set');
                     const team = input.getAttribute('data-team');
-                    
+
                     if (field) {
                         matches[index][field] = input.value;
                     } else if (set && team) {
@@ -1264,220 +646,17 @@
                         matches[index][set][team] = parseInt(input.value) || 0;
                     }
                 });
-                
+
             });
             // Save data to local storage
             saveMatches(matches);
             recalculateOfficialStats(matches);
-            checkAndCreateFinalMatches();
+
+            markChangesSaved();
             renderMatches(matches);
             alert('All changes saved successfully!');
         });
 
-        function checkAndCreateFinalMatches() {
-            const matches = fetchMatches();
-            const teams = fetchTeams();
-            
-            // Group matches by tier
-            const tierMatches = {};
-            matches.forEach(match => {
-                const teamA = teams[match.teamAID];
-                if (!teamA) return;
-                
-                const tier = teamA.preliminaryGroup.split('-')[0]; // e.g., "Tier1" from "Tier1-A"
-                if (!tierMatches[tier]) {
-                    tierMatches[tier] = {
-                        preliminary: [],
-                        final: []
-                    };
-                }
-                
-                if (match.preliminary) {
-                    tierMatches[tier].preliminary.push(match);
-                } else {
-                    tierMatches[tier].final.push(match);
-                }
-            });
-            // Clear existing finals buttons 
-            const container = document.getElementById("final-matches-container");
-            container.innerHTML = '';
-            // Check each tier and create finals buttons
-            Object.entries(tierMatches).forEach(([tier, { preliminary, final }]) => {
-                if (preliminary.length > 0 && preliminary.every(match => Boolean(match.status))) {
-                    showGenerateFinalsButton(tier);
-                }
-                const Tier1quarterFinalMatches = matches.filter(match => match.group === 'Tier1Finals-Round1');
-                const Tier2Round1FinalMatches = matches.filter(match => match.group === 'Tier2Finals-Round1' && match.teamAID !== match.teamBID);
-                const Tier2semiFinalMatches = matches.filter(match => match.group === 'Tier2Finals-Round2');
-                const Tier3Round1FinalMatches = matches.filter(match => match.group === 'Tier3Finals-Round1' && match.teamAID !== match.teamBID);
-                const Tier3semiFinalMatches = matches.filter(match => match.group === 'Tier3Finals-Round2');
-                // For Tier1, if quarterfinal (first round) finals are finished, show the 5-8 button
-                if (tier === "Tier1" && Tier1quarterFinalMatches.length === 4 && Tier1quarterFinalMatches.every(match => match.status === true)) {
-                    showGenerateTier1LosersButton();
-                }
-                // tier2 quarterFinals
-                if (tier === "Tier2" && Tier2Round1FinalMatches.length === 4 && Tier2Round1FinalMatches.every(match => match.status === true)) {
-                    showGenerateTier22LosersButton();
-                }
-                // tier2 semiFinals
-                if (tier === "Tier2" && Tier2semiFinalMatches.length === 4 && Tier2semiFinalMatches.every(match => match.status === true)) {
-                    showGenerateTier2LosersButton();
-                }
-                // tier3 quarterFinals
-                if (tier === "Tier3" && Tier3Round1FinalMatches.length === 4 && Tier3Round1FinalMatches.every(match => match.status === true)) {
-                    showGenerateTier33LosersButton();
-                }
-                // tier3 semiFinals
-                if (tier === "Tier3" && Tier3semiFinalMatches.length === 4 && Tier3semiFinalMatches.every(match => match.status === true)) {
-                    showGenerateTier3LosersButton();
-                }
-            });
-        }
-
-        // Finals
-
-        
-        function showGenerateTier1LosersButton() {
-            // Check that all quarterfinal matches are finished
-            const container = document.getElementById("final-matches-container");
-            // Create the 5-8 generation button
-            const button5to8 = document.createElement("button");
-            button5to8.className = 'action-btn success';
-            button5to8.textContent = "Generate Tier1 5-8 Bracket";
-
-            let firstClickKey = `Tier1 5-8 matches FirstClick`;
-            let isFirstClick = fetchFirstClick(firstClickKey) !== "false";
-            if (!isFirstClick) button5to8.style.backgroundColor = "#888";
-
-            button5to8.addEventListener("click", () => {
-                let firstClickKey = `Tier1 5-8 matches FirstClick`;
-                let isFirstClick = fetchFirstClick(firstClickKey) !== "false";
-                if (isFirstClick) {
-                    saveFirstClick(firstClickKey, "false");
-                    isFirstClick = false;
-                    generateFinalLoserMatches(1);
-                    alert("Tier1 5-8 matches generated");
-                } else {
-                    if (confirm("Loser matches already generated. Generate again?")) {
-                        generateFinalLoserMatches(1);
-                    }
-                }
-                
-            });
-            container.appendChild(button5to8);
-
-        }
-
-        function showGenerateTier2LosersButton() {
-            const container = document.getElementById("final-matches-container");
-            // Create the 5-8 generation button
-            const button = document.createElement("button");
-            button.className = 'action-btn success';
-            button.textContent = "Generate Tier2 5-8 Bracket";
-            let firstClickKey = `Tier2 5-8 matches FirstClick`;
-            let isFirstClick = fetchFirstClick(firstClickKey) !== "false";
-            if (!isFirstClick) button.style.backgroundColor = "#888";
-            button.addEventListener("click", () => {
-                let firstClickKey = `Tier2 5-8 matches FirstClick`;
-                let isFirstClick = fetchFirstClick(firstClickKey) !== "false";
-                if (isFirstClick) {
-                    saveFirstClick(firstClickKey, "false");
-                    isFirstClick = false;
-                    generateFinalLoserMatches(2);
-                    alert("Tier2 5-8 matches generated");
-                } else {
-                    if (confirm("Loser matches already generated. Generate again?")) {
-                        generateFinalLoserMatches(2);
-                    }
-                }
-            });
-            container.appendChild(button);
-
-        }
-        
-        function showGenerateTier22LosersButton() {
-            const container = document.getElementById("final-matches-container");
-            // Create the 9-12 generation button
-            const button = document.createElement("button");
-            button.className = 'action-btn success';
-            button.textContent = "Generate Tier2 9-12 Bracket";
-            let firstClickKey = `Tier2 9-12 matches FirstClick`;
-            let isFirstClick = fetchFirstClick(firstClickKey) !== "false";
-            if (!isFirstClick) button.style.backgroundColor = "#888";
-            button.addEventListener("click", () => {
-                let firstClickKey = `Tier2 9-12 matches FirstClick`;
-                let isFirstClick = fetchFirstClick(firstClickKey) !== "false";
-                if (isFirstClick) {
-                    saveFirstClick(firstClickKey, "false");
-                    isFirstClick = false;
-                    generateFinalLoserMatches(22);
-                    alert("Tier2 9-12 matches generated");
-                } else {
-                    if (confirm("Loser matches already generated. Generate again?")) {
-                        generateFinalLoserMatches(22);
-                    }
-                }
-            });
-            container.appendChild(button);
-
-        }
-
-        function showGenerateTier3LosersButton() {
-            const container = document.getElementById("final-matches-container");
-            // Create the 5-8 generation button
-            const button = document.createElement("button");
-            button.className = 'action-btn success';
-            button.textContent = "Generate Tier3 5-8 Bracket";
-            let firstClickKey = `Tier3 5-8 matches FirstClick`;
-            let isFirstClick = fetchFirstClick(firstClickKey) !== "false";
-            if (!isFirstClick) button.style.backgroundColor = "#888";
-            button.addEventListener("click", () => {
-                let firstClickKey = `Tier3 5-8 matches FirstClick`;
-                let isFirstClick = fetchFirstClick(firstClickKey) !== "false";
-                if (isFirstClick) {
-                    saveFirstClick(firstClickKey, "false");
-                    isFirstClick = false;
-                    generateFinalLoserMatches(3);
-                    alert("Tier3 5-8 matches generated");
-                } else {
-                    if (confirm("Loser matches already generated. Generate again?")) {
-                        generateFinalLoserMatches(3);
-                    }
-                }
-            });
-            container.appendChild(button);
-
-        }
-        
-        function showGenerateTier33LosersButton() {
-            const container = document.getElementById("final-matches-container");
-            // Create the 9-12 generation button
-            const button = document.createElement("button");
-            button.className = 'action-btn success';
-            button.textContent = "Generate Tier3 9-12 Bracket";
-            let firstClickKey = `Tier3 9-12 matches FirstClick`;
-            let isFirstClick = fetchFirstClick(firstClickKey) !== "false";
-            if (!isFirstClick) button.style.backgroundColor = "#888";
-            button.addEventListener("click", () => {
-                let firstClickKey = `Tier3 9-12 matches FirstClick`;
-                let isFirstClick = fetchFirstClick(firstClickKey) !== "false";
-                if (isFirstClick) {
-                    saveFirstClick(firstClickKey, "false");
-                    isFirstClick = false;
-                    generateFinalLoserMatches(33);
-                    alert("Tier3 9-12 matches generated");
-                } else {
-                    if (confirm("Loser matches already generated. Generate again?")) {
-                        generateFinalLoserMatches(33);
-                    }
-                }
-            });
-            container.appendChild(button);
-
-        }
-
-        
-        
     </script>
 </body>
 </html>

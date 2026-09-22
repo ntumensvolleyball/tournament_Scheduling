@@ -89,7 +89,6 @@ function showMatchinfo(matchDiv, match){
             // Find the current match in the stored data
             const matchIndex = matches.findIndex(m => m.id === match.id);
             if (matchIndex === -1) return;
-            const teams = matches[matchIndex].newbie ? fetchNewbieTeams() : fetchTeams();
             // Get inputs from the popup
             const inputs = popup.querySelectorAll('input');
             inputs.forEach(input => {
@@ -107,54 +106,7 @@ function showMatchinfo(matchDiv, match){
                 }
             });
 
-            // Calculate scores and update status
-            matches[matchIndex] = updateMatchStatus(matches[matchIndex]);
-
-            if (matches[matchIndex].status) {
-                const previousWinner = matches[matchIndex].winner;
-                let teamASets = 0, teamBSets = 0;
-
-                // Count sets won
-                ['set1', 'set2', 'set3'].forEach(set => {
-                    if (matches[matchIndex][set]) {
-                        if (matches[matchIndex][set][0] > matches[matchIndex][set][1]) teamASets++;
-                        else if (matches[matchIndex][set][1] > matches[matchIndex][set][0]) teamBSets++;
-                    }
-                });
-
-                // Update winner
-                matches[matchIndex].winner = (teamASets >= 2) ? matches[matchIndex].teamAID : matches[matchIndex].teamBID;
-
-                // Handle next match
-                if (matches[matchIndex].nextMatch !== null) {
-                    const nextMatchId = matches[matchIndex].nextMatch;
-                    const nextMatch = matches.find(m => m.id === nextMatchId);
-
-                    if (nextMatch && previousWinner !== matches[matchIndex].winner) {
-                        if (nextMatch.teamAID === previousWinner) {
-                            if (teams[previousWinner]?.games) {
-                                teams[previousWinner].games = teams[previousWinner].games.filter(id => id !== nextMatchId);
-                            }
-                            nextMatch.teamAID = matches[matchIndex].winner;
-                        } else if (nextMatch.teamBID === previousWinner) {
-                            if (teams[previousWinner]?.games) {
-                                teams[previousWinner].games = teams[previousWinner].games.filter(id => id !== nextMatchId);
-                            }
-                            nextMatch.teamBID = matches[matchIndex].winner;
-                        }
-                    }
-                }
-            } else {
-                matches[matchIndex].winner = null;
-            }
-
-            // Save match Save teams
             saveMatches(matches);
-            if (matches[matchIndex].newbie) {
-                saveNewbieTeams(teams);
-            }else{
-                saveTeams(teams);
-            }
             // Debug
             console.log('Match saved:', matches[matchIndex]);
             // close the popup

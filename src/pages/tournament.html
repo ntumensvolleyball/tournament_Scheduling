@@ -4,36 +4,37 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="../utility/volleyball.png" type="image/png">
-    <title>Create Custom Tournament</title>
+    <title>Create Tournament</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="base.css">
-    <link rel="stylesheet" href="custom.css">
+    <link rel="stylesheet" href="tournament.css">
     <link rel="stylesheet" href="darkmode.css">
 </head>
-<body class="page custom-page">
+<body class="page">
     <script src="../utility/dataStorage.js"></script>
-    <script src="../utility/customTournament.js"></script>
+    <script src="../utility/tournament.js"></script>
 
-    <a href="../../index.html" class="back-link">
+    <a href="../../admin.html" class="back-link">
         <i class="fas fa-arrow-left"></i>
         Back to Main Page
     </a>
 
-    <header class="page-header custom-panel">
-        <h1>Create Custom Tournament</h1>
-        <p class="custom-builder-status" id="custom-builder-status">Builds are staged locally until Save Game Creation is pressed.</p>
+    <header class="page-header panel">
+        <h1>Create Tournament</h1>
+        <p>Enter a tournament name and drag teams into every first-round slot (or the round-robin roster), then save.</p>
+        <p class="builder-status" id="builder-status" role="status" aria-live="polite">Nothing is saved yet.</p>
     </header>
 
-    <main class="custom-builder">
-        <section class="custom-panel custom-team-browser">
+    <main class="builder">
+        <section class="panel team-browser">
             <aside class="filter-stack">
-                <label class="custom-field">
+                <label class="field">
                     Tags include:
                     <input id="tag-filter-search" type="search" placeholder="Search tags">
                 </label>
                 <div id="tag-filter-options" class="filter-options"></div>
 
-                <label class="custom-field">
+                <label class="field">
                     Winner of:
                     <input id="winner-filter-search" type="search" placeholder="Search winner tags">
                 </label>
@@ -42,47 +43,47 @@
 
             <section>
                 <h2>Teams</h2>
-                <div id="custom-team-list" class="custom-team-list"></div>
+                <div id="team-list" class="team-list"></div>
             </section>
         </section>
 
-        <section class="custom-panel custom-stage-panel">
-            <div class="custom-stage-controls">
-                <label class="custom-field">
+        <section class="panel stage-panel">
+            <div class="stage-controls">
+                <label class="field">
                     Format
                     <select id="tournament-format">
                         <option value="elimination">Elimination bracket</option>
                         <option value="robin">N robin round</option>
                     </select>
                 </label>
-                <label class="custom-field" id="bracket-size-control">
+                <label class="field" id="bracket-size-control">
                     Bracket Size
                     <select id="bracket-size"></select>
                 </label>
-                <label class="custom-field is-hidden" id="robin-size-control">
+                <label class="field is-hidden" id="robin-size-control">
                     Robin Round Size
                     <input id="robin-size" type="number" min="2" step="1" value="4">
                 </label>
-                <label class="custom-field is-hidden" id="robin-repeat-control">
+                <label class="field is-hidden" id="robin-repeat-control">
                     Robin Count
                     <input id="robin-repeats" type="number" min="1" step="1" value="1">
                 </label>
-                <label class="custom-field">
+                <label class="field">
                     Tournament Name
                     <input id="tournament-name" type="text" placeholder="e.g. Fall Open">
                 </label>
-                <div class="custom-actions">
+                <div class="actions">
                     <button id="clear-stage" class="btn-secondary">Clear Stage</button>
-                    <button id="save-game-creation" class="btn-primary">Save Game Creation</button>
+                    <button type="button" id="save-game-creation" class="btn-primary">Save Tournament</button>
                 </div>
             </div>
 
-            <div id="custom-stage" class="custom-stage"></div>
+            <div id="stage" class="stage"></div>
         </section>
     </main>
 
     <script>
-        initializeCustomTournamentPage();
+        initializeTournamentPage();
     </script>
 </body>
 </html>

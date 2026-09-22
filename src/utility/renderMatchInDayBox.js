@@ -40,7 +40,6 @@ function createDayDiv(day, isOtherMonth, dateStr) {
 function createMatchDiv(match, dayDiv, matchesContainer, dateStr){
     const matchDiv = document.createElement('div');
     matchDiv.className = 'calendar-match sort-hidden';
-    if (match.newbie) matchDiv.classList.add('newbie-cup');
     if (match.locked === undefined) {
         match.locked = false; // Initialize if undefined
     }
@@ -275,7 +274,6 @@ function renderFilteredUndatedMatches(dateStr, searchText){
         const matchDiv = document.createElement("div");
         matchDiv.textContent = `${match.group}: ${match.teamAID} vs ${match.teamBID}`;
         matchDiv.classList.add("match-item");
-        if (match.newbie) matchDiv.classList.add('newbie-cup');
         // Add click event to select match
         matchDiv.addEventListener("click", () => addMatchToSelection(match, dateStr));
         matchList.appendChild(matchDiv);
@@ -285,7 +283,6 @@ function renderFilteredUndatedMatches(dateStr, searchText){
         matchDiv.textContent = `${match.group}: ${match.teamAID} vs ${match.teamBID} (Unavailable)`;
         matchDiv.classList.add("match-item");
         matchDiv.style.opacity = '0.5'; // Dim the unavailable matches
-        if (match.newbie) matchDiv.classList.add('newbie-cup');
         // Add click event to select match
         matchDiv.addEventListener("click", () => addMatchToSelection(match, dateStr));
         matchList.appendChild(matchDiv);
@@ -314,7 +311,6 @@ function renderFilteredUndatedMatches(dateStr, searchText){
         const matchDiv = document.createElement("div");
         matchDiv.textContent = `${match.group}: ${match.teamAID} vs ${match.teamBID}`;
         matchDiv.classList.add("match-item-dated");
-        if (match.newbie) matchDiv.classList.add('match-item-dated-newbie');
         // Add click event to select match
         matchDiv.addEventListener("click", () => addMatchToSelection(match, dateStr));
         matchList.appendChild(matchDiv);
@@ -324,7 +320,6 @@ function renderFilteredUndatedMatches(dateStr, searchText){
         matchDiv.textContent = `${match.group}: ${match.teamAID} vs ${match.teamBID} (Unavailable)`;
         matchDiv.classList.add("match-item-dated");
         matchDiv.style.opacity = '0.5'; // Dim the unavailable matches
-        if (match.newbie) matchDiv.classList.add('match-item-dated-newbie');
         // Add click event to select match
         matchDiv.addEventListener("click", () => addMatchToSelection(match, dateStr));
         matchList.appendChild(matchDiv);
